@@ -6,6 +6,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Lob;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
@@ -27,6 +28,7 @@ public class Subject {
     private String name;
 
     @NotNull(message = "Subject description is required")
+    @Lob
     private String description;
 
     @NotNull(message = "Subject area is required")
@@ -35,7 +37,9 @@ public class Subject {
     @NotNull(message = "Subject credits is required")
     private Integer credits;
 
+    @Lob
     private String contents;
+    
     private String prerequisites;
     private String corequisites;
 

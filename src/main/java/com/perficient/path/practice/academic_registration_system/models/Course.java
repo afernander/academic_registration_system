@@ -11,7 +11,9 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
+import javax.persistence.Lob;
 import javax.persistence.ManyToMany;
+import javax.validation.constraints.Digits;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
@@ -29,12 +31,15 @@ public class Course {
     private String name;
 
     @NotNull(message = "Course description is required")
+    @Lob
     private String description;
 
     private Double duration;
 
     @Enumerated(EnumType.STRING)
     private DurationType durationType;
+
+    @Digits(integer = 8, fraction = 2)
     private BigDecimal price;
 
     @ManyToMany(mappedBy = "courses")

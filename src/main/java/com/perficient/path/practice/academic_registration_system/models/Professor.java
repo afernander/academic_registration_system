@@ -25,6 +25,7 @@ public class Professor {
 
     @NotNull(message = "Professor area is mandatory")
     private String area;
+    
     private String specialization;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "professor")
