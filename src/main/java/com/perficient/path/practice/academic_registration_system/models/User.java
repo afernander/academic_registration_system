@@ -21,8 +21,7 @@ import javax.validation.constraints.Email;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
-
-
+import javax.validation.constraints.Size;
 
 import lombok.Data;
 
@@ -50,7 +49,7 @@ public class User {
     private String email;
 
     @NotNull(message = "Password is mandatory")
-    @Min(value = 8, message = "Password must be at least 8 characters")
+    @Size(min = 8, message = "Password must be at least 8 characters")
     private String password;
 
     @Temporal(TemporalType.DATE)
