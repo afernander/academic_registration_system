@@ -38,5 +38,33 @@ public class UserServiceImpl implements UserService {
         return userRepository.save(user);
     }
 
+    @Override
+    public User updateUser(Long id,User user) {
+        User userToUpdate = userRepository.findById(id).orElse(null);
+        if (userToUpdate == null) {
+            log.error("User with id {} not found", id);
+            return null;
+        }
+        userToUpdate.setId(id);
+        userToUpdate.setFirstName(user.getFirstName());
+        userToUpdate.setMiddleName(user.getMiddleName());
+        userToUpdate.setFirstSurname(user.getFirstSurname());
+        userToUpdate.setSecondSurname(user.getSecondSurname());
+        userToUpdate.setPassword(user.getPassword());
+        userToUpdate.setBornDate(user.getBornDate());
+        userToUpdate.setRole(user.getRole());
+        return userRepository.save(userToUpdate);
+    }
+
+    @Override
+    public void deleteUserById(Long id) {
+        User userToDelete = userRepository.findById(id).orElse(null);
+        if (userToDelete == null) {
+            log.error("User with id {} not found", id);
+            return;
+        }
+        userRepository.delete(userToDelete);
+    }
+
 }
     

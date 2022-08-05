@@ -10,8 +10,7 @@ public interface UserService {
     User getUserById(Long id);
     Set<User> getAllUsers();
     User createUser(User user);
-    // User updateUser(User user);
-    // void deleteUserById(Long id);
-    // Set<User> getUsersByFirstName(String fistName);
-    // Set<Course> getCoursesByUserId(Long userId);
+    User updateUser(Long id, User user);
+    void deleteUserById(Long id);
+    // Todo Set<Course> getCoursesByUserId(Long userId);
 }

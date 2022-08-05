@@ -51,4 +51,6 @@ public class UserTest {
         user2.setFirstName("John");
         assertFalse(user1.equals(user2));
     }
+
+    
 }
