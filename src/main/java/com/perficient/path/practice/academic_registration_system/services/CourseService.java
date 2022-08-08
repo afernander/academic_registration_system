@@ -11,11 +11,12 @@ public interface CourseService {
     Course getCourseById(Long id);
     Set<Course> getAllCourses();
     Course createCourse(Course course);
-    Course updateCourse(Course course);
+    Course updateCourse(Long id,Course course);
     void deleteCourseById(Long id);
     Set<Course> getCoursesByName(String name);
-    Set<Subject> getSubjectsByCourseId(Long courseId);
-    Set<User> getUsersByCourseId(Long courseId);
     String getCourseDurationByCourseId(Long courseId);
+    //Set<Subject> getSubjectsByCourseId(Long courseId);
+    //Set<User> getUsersByCourseId(Long courseId);
+    
     
 }

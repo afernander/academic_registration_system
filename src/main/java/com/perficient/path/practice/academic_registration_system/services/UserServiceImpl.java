@@ -42,7 +42,6 @@ public class UserServiceImpl implements UserService {
     @Override
     public User updateUser(Long id,User user) {
         User userToUpdate = userRepository.findById(id).orElseThrow(() -> new UserNotFoundExeption("User with id "+ id+ " not found to update"));
-        userToUpdate.setId(id);
         userToUpdate.setFirstName(user.getFirstName());
         userToUpdate.setMiddleName(user.getMiddleName());
         userToUpdate.setFirstSurname(user.getFirstSurname());
