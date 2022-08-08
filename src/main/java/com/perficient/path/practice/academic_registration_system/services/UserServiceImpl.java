@@ -5,6 +5,7 @@ import java.util.Set;
 
 import org.springframework.stereotype.Service;
 
+import com.perficient.path.practice.academic_registration_system.errors.UserNotFoundExeption;
 import com.perficient.path.practice.academic_registration_system.models.User;
 import com.perficient.path.practice.academic_registration_system.repositories.UserRepository;
 
@@ -22,7 +23,7 @@ public class UserServiceImpl implements UserService {
     
     @Override
     public User getUserById(Long id){
-        return userRepository.findById(id).orElse(null);
+        return userRepository.findById(id).orElseThrow(() -> new UserNotFoundExeption("User with id "+ id+ " not found"));
     }
 
     @Override
@@ -40,11 +41,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User updateUser(Long id,User user) {
-        User userToUpdate = userRepository.findById(id).orElse(null);
-        if (userToUpdate == null) {
-            log.error("User with id {} not found", id);
-            return null;
-        }
+        User userToUpdate = userRepository.findById(id).orElseThrow(() -> new UserNotFoundExeption("User with id "+ id+ " not found to update"));
         userToUpdate.setId(id);
         userToUpdate.setFirstName(user.getFirstName());
         userToUpdate.setMiddleName(user.getMiddleName());
@@ -58,11 +55,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void deleteUserById(Long id) {
-        User userToDelete = userRepository.findById(id).orElse(null);
-        if (userToDelete == null) {
-            log.error("User with id {} not found", id);
-            return;
-        }
+        User userToDelete = userRepository.findById(id).orElseThrow(() -> new UserNotFoundExeption("User with id "+ id+ " not found to delete"));
         userRepository.delete(userToDelete);
     }
 

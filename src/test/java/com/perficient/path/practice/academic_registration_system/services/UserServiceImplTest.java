@@ -11,6 +11,7 @@ import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,6 +19,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import com.perficient.path.practice.academic_registration_system.repositories.UserRepository;
+import com.perficient.path.practice.academic_registration_system.errors.UserNotFoundExeption;
 import com.perficient.path.practice.academic_registration_system.models.User;
 
 public class UserServiceImplTest {
@@ -124,5 +126,27 @@ public class UserServiceImplTest {
         
         verify(userRepository, times(1)).findById(1L);
         verify(userRepository, times(1)).delete(user);
+    }
+
+    @Test
+    void getUserByIdUserNotFoundTest(){
+        when(userRepository.findById(1L)).thenReturn(Optional.empty());
+        
+        assertThrows(UserNotFoundExeption.class, () -> userService.getUserById(1L));
+    }
+
+    @Test
+    void updateUserUserNotFoundTest(){
+        when(userRepository.findById(1L)).thenReturn(Optional.empty());
+        User user = userTest;
+        
+        assertThrows(UserNotFoundExeption.class, () -> userService.updateUser(1L,user));
+    }
+
+    @Test
+    void deleteUserByIdNotFoundTest(){
+        when(userRepository.findById(1L)).thenReturn(Optional.empty());
+        
+        assertThrows(UserNotFoundExeption.class, () -> userService.deleteUserById(1L));
     }
 }
