@@ -8,5 +8,5 @@ import com.perficient.path.practice.academic_registration_system.models.Subject;
 @Repository
 public interface SubjectRepository extends JpaRepository<Subject, Long> {
 
-    
+
 }

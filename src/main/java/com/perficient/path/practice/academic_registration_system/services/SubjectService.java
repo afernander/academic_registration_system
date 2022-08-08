@@ -10,11 +10,11 @@ public interface SubjectService {
     Subject getSubjectById(Long id);
     Set<Subject> getAllSubjects();
     Subject createSubject(Subject subject);
-    Subject updateSubject(Subject subject);
-    void deleteSubjectById(Long id);
-    Set<Subject> getSubjectsByName(String name);
-    Set<Subject> getSubjectsByArea(String area);
-    Set<Subject> getSubjectsByCredits(Integer credits);
-    Set<Subject> getSubjectsByProfessorId(Long professorId);
-    Set<Course> getCoursesBySubjectId(Long subjectId);
+    //Subject updateSubject(Subject subject);
+    //void deleteSubjectById(Long id);
+    //Set<Subject> getSubjectsByName(String name);
+    //Set<Subject> getSubjectsByArea(String area);
+    //Set<Subject> getSubjectsByCredits(Integer credits);
+    //Set<Subject> getSubjectsByProfessorId(Long professorId);
+    //Set<Course> getCoursesBySubjectId(Long subjectId);
 }
