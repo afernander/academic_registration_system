@@ -35,5 +35,54 @@ public class SubjectServiceImpl implements SubjectService {
     public Subject createSubject(Subject subject) {
         return subjectRepository.save(subject);
     }
+
+    @Override
+    public Subject updateSubject(Long id,Subject subject) {
+        Subject subjectToUpdate = subjectRepository.findById(id).orElseThrow(()->new SubjectNotFoundExeption("Subject with id "+subject.getId()+" not found to update"));
+        subjectToUpdate.setName(subject.getName());
+        subjectToUpdate.setDescription(subject.getDescription());
+        subjectToUpdate.setArea(subject.getArea());
+        subjectToUpdate.setCredits(subject.getCredits());
+        subjectToUpdate.setContents(subject.getContents());
+        subjectToUpdate.setPrerequisites(subject.getPrerequisites());
+        subjectToUpdate.setCorequisites(subject.getCorequisites());
+      
+        return subjectRepository.save(subjectToUpdate);
+    }
+
+    @Override
+    public void deleteSubjectById(Long id) {
+        Subject subjectToDelete = subjectRepository.findById(id).orElseThrow(()->new SubjectNotFoundExeption("Subject with id "+id+" not found to delete"));
+        subjectRepository.delete(subjectToDelete);
+    }
     
+    @Override
+    public Set<Subject> getSubjectsByName(String name){
+        Set<Subject> subjectsSet = new HashSet<>();
+        subjectRepository.findByNameContaining(name).iterator().forEachRemaining(subjectsSet::add);
+        if(subjectsSet.isEmpty()){
+            throw new SubjectNotFoundExeption("Subjects with name "+name+" not found");
+        }
+        return subjectsSet;
+    }
+
+    @Override
+    public Set<Subject> getSubjectsByArea(String area){
+        Set<Subject> subjectsSet = new HashSet<>();
+        subjectRepository.findByAreaContaining(area).iterator().forEachRemaining(subjectsSet::add);
+        if(subjectsSet.isEmpty()){
+            throw new SubjectNotFoundExeption("Subjects with area "+area+" not found");
+        }
+        return subjectsSet;
+    }
+
+    @Override
+    public Set<Subject> getSubjectsByCredits(Integer credits){
+        Set<Subject> subjectsSet = new HashSet<>();
+        subjectRepository.findByCredits(credits).iterator().forEachRemaining(subjectsSet::add);
+        if(subjectsSet.isEmpty()){
+            throw new SubjectNotFoundExeption("Subjects with credits "+credits+" not found");
+        }
+        return subjectsSet;
+    }
 }
