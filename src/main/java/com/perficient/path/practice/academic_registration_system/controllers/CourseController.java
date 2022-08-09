@@ -58,7 +58,7 @@ public class CourseController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @GetMapping(value="/{name}/name")
+    @GetMapping(value="/{name}/search/name")
     public ResponseEntity<Set<Course>> getCoursesByName(@PathVariable String name) {
         Set<Course> courses = courseService.getCoursesByName(name);
         return new ResponseEntity<>(courses, HttpStatus.OK);

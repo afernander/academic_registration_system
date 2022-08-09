@@ -49,7 +49,7 @@ public class UserServiceImplTest {
 
 
     @Test
-    void testGetUserById() {
+    void getUserByIdTest() {
         User user = new User();
         user.setId(1L);
 
