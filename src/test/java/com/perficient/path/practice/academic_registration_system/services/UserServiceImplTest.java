@@ -18,8 +18,11 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import com.perficient.path.practice.academic_registration_system.repositories.CourseRepository;
 import com.perficient.path.practice.academic_registration_system.repositories.UserRepository;
+import com.perficient.path.practice.academic_registration_system.errors.CourseNotFoundExeption;
 import com.perficient.path.practice.academic_registration_system.errors.UserNotFoundExeption;
+import com.perficient.path.practice.academic_registration_system.models.Course;
 import com.perficient.path.practice.academic_registration_system.models.User;
 
 public class UserServiceImplTest {
@@ -29,8 +32,12 @@ public class UserServiceImplTest {
     @Mock
     UserRepository userRepository;
     
+    @Mock
+    CourseRepository courseRepository;
 
     User userTest = new User();
+
+    Course courseTest = new Course();
 
     @BeforeEach
     public void setUp() throws Exception {
@@ -44,7 +51,11 @@ public class UserServiceImplTest {
         userTest.setPassword("PASSWORD");
         userTest.setRole("student");
 
-        userService = new UserServiceImpl(userRepository);
+        courseTest.setId(1L);
+        courseTest.setName("Java");
+        courseTest.setDescription("Java is a programming language");
+
+        userService = new UserServiceImpl(userRepository, courseRepository);
     }
 
 
@@ -148,5 +159,82 @@ public class UserServiceImplTest {
         when(userRepository.findById(1L)).thenReturn(Optional.empty());
         
         assertThrows(UserNotFoundExeption.class, () -> userService.deleteUserById(1L));
+    }
+
+    @Test
+    void addCourseToUserTest() throws Exception{
+        Long userId = userTest.getId();
+        Long courseId = courseTest.getId();
+        User user = userTest;
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(courseRepository.findById(courseId)).thenReturn(Optional.of(courseTest));
+
+        user.getCourses().add(courseTest);
+        when(userRepository.save(user)).thenReturn(user);
+        User userRetruned=userService.addCourseToUser(userId, courseId);
+
+        assertNotNull(userRetruned, "User should not be null");
+        assertEquals(user, userRetruned);
+        verify(userRepository, times(1)).findById(1L);
+        verify(courseRepository, times(1)).findById(1L);
+        verify(userRepository, times(1)).save(user);
+        verify(userRepository, never()).findAll();
+        verify(courseRepository, never()).findAll();
+    }
+
+    @Test
+    void addCourseToUser_UserNotFoundTest() throws Exception{
+        Long userId = userTest.getId();
+        Long courseId = courseTest.getId();
+        User user = userTest;
+
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+        when(courseRepository.findById(courseId)).thenReturn(Optional.of(courseTest));
+
+        assertThrows(UserNotFoundExeption.class, () -> userService.addCourseToUser(userId, courseId));
+    }
+
+    @Test
+    void addCourseToUser_CourseNotFoundTest() throws Exception{
+        Long userId = userTest.getId();
+        Long courseId = courseTest.getId();
+        User user = userTest;
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(courseRepository.findById(courseId)).thenReturn(Optional.empty());
+
+        assertThrows(CourseNotFoundExeption.class, () -> userService.addCourseToUser(userId, courseId));
+    }
+
+    @Test
+    void getCoursesByUserId() throws Exception{
+        Long userId = userTest.getId();
+        User user = userTest;
+        user.getCourses().add(courseTest);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        Set<Course> courses = userService.getCoursesByUserId(userId);
+        assertNotNull(courses, "Courses should not be null");
+        assertEquals(1, courses.size());
+        verify(userRepository, times(1)).findById(1L);
+        verify(userRepository, never()).findAll();
+        verify(courseRepository, never()).findAll();
+    }
+
+    @Test
+    void getCoursesByUserId_UserNotFoundTest() throws Exception{
+        Long userId = userTest.getId();
+        User user = userTest;
+        user.getCourses().add(courseTest);
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+        assertThrows(UserNotFoundExeption.class, () -> userService.getCoursesByUserId(userId));
+    }
+
+    @Test
+    void getCoursesByUserId_CourseNotFoundTest() throws Exception{
+        Long userId = userTest.getId();
+        User user = userTest;
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        assertThrows(CourseNotFoundExeption.class, () -> userService.getCoursesByUserId(userId));
     }
 }

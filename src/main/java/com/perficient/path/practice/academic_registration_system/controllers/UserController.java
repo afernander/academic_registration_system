@@ -3,6 +3,7 @@ package com.perficient.path.practice.academic_registration_system.controllers;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.perficient.path.practice.academic_registration_system.models.Course;
 import com.perficient.path.practice.academic_registration_system.models.User;
 import com.perficient.path.practice.academic_registration_system.services.UserService;
 
@@ -60,5 +61,15 @@ public class UserController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
     
+    @GetMapping(value="/{userId}/addcourse/{courseId}")
+    public ResponseEntity<User> addCourseToUser(@PathVariable Long userId, @PathVariable Long courseId) {
+        User updatedUser = userService.addCourseToUser(userId, courseId);
+        return new ResponseEntity<>(updatedUser, HttpStatus.OK);
+    }
 
+    @GetMapping(value="/{userId}/courses")
+    public ResponseEntity<Set<Course>> getCoursesByUserId(@PathVariable Long userId) {
+        Set<Course> courses = userService.getCoursesByUserId(userId);
+        return new ResponseEntity<>(courses, HttpStatus.OK);
+    }
 }

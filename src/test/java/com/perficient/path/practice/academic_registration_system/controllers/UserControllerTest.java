@@ -23,7 +23,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.perficient.path.practice.academic_registration_system.models.Course;
 import com.perficient.path.practice.academic_registration_system.models.User;
+import com.perficient.path.practice.academic_registration_system.repositories.CourseRepository;
 import com.perficient.path.practice.academic_registration_system.repositories.UserRepository;
 import com.perficient.path.practice.academic_registration_system.services.UserService;
 
@@ -37,9 +39,14 @@ public class UserControllerTest {
     @Mock
     UserRepository userRepository;
 
+    @Mock
+    CourseRepository courseRepository;
+
     UserController userController;
 
     User userTest = new User();
+
+    Course courseTest = new Course();
 
     @BeforeEach
     void setUp() throws Exception {
@@ -52,6 +59,10 @@ public class UserControllerTest {
         userTest.setEmail("test@gmail.com");
         userTest.setPassword("PASSWORD");
         userTest.setRole("student");
+
+        courseTest.setId(1L);
+        courseTest.setName("Java");
+        courseTest.setDescription("Java is a programming language");
 
         userController = new UserController(userService);
         mockMvc = MockMvcBuilders.standaloneSetup(userController).build();
@@ -157,6 +168,39 @@ public class UserControllerTest {
 
         mockMvc.perform(delete(("/users/"+userId+"/delete")))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    void addCourseToUser() throws Exception {
+        Long userId = userTest.getId();
+        Long courseId = courseTest.getId();
+        User user = userTest;
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(courseRepository.findById(1L)).thenReturn(Optional.of(courseTest));
+
+        user.getCourses().add(courseTest);
+        when(userService.addCourseToUser(userId,courseId)).thenReturn(user);
+        
+        mockMvc.perform(get("/users/"+userId+"/addcourse/"+courseId))
+                .andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.id").value(userId))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.firstName").value("John"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.courses[0].id").value(courseId))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.courses[0].name").value("Java"));
+    }
+
+    @Test
+    void getCoursesByUserIdTest() throws Exception{
+        Long userId = userTest.getId();
+        User user = userTest;
+        user.getCourses().add(courseTest);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(userService.getCoursesByUserId(userId)).thenReturn(user.getCourses());
+        mockMvc.perform(get("/users/"+userId+"/courses"))
+                .andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$[0].id").value(1))
+                .andExpect(MockMvcResultMatchers.jsonPath("$[0].name").value("Java"));
     }
                 
 }

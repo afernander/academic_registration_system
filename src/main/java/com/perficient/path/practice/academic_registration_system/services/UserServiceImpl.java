@@ -5,8 +5,11 @@ import java.util.Set;
 
 import org.springframework.stereotype.Service;
 
+import com.perficient.path.practice.academic_registration_system.errors.CourseNotFoundExeption;
 import com.perficient.path.practice.academic_registration_system.errors.UserNotFoundExeption;
+import com.perficient.path.practice.academic_registration_system.models.Course;
 import com.perficient.path.practice.academic_registration_system.models.User;
+import com.perficient.path.practice.academic_registration_system.repositories.CourseRepository;
 import com.perficient.path.practice.academic_registration_system.repositories.UserRepository;
 
 import lombok.extern.slf4j.Slf4j;
@@ -17,8 +20,12 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
 
-    public UserServiceImpl(UserRepository userRepository) {
+    private final CourseRepository courseRepository;
+
+
+    public UserServiceImpl(UserRepository userRepository, CourseRepository courseRepository) {
         this.userRepository = userRepository;
+        this.courseRepository = courseRepository;
     }
     
     @Override
@@ -58,5 +65,22 @@ public class UserServiceImpl implements UserService {
         userRepository.delete(userToDelete);
     }
 
+    @Override
+    public User addCourseToUser(Long userId, Long courseId) {
+        User userToUpdate = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundExeption("User with id "+ userId+ " not found to update"));
+        Course courseToAdd = courseRepository.findById(courseId).orElseThrow(() -> new CourseNotFoundExeption("Course with id "+ courseId+ " not found to add"));
+        userToUpdate.getCourses().add(courseToAdd);
+        return userRepository.save(userToUpdate);
+    }
+
+    @Override
+    public Set<Course> getCoursesByUserId(Long userId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundExeption("User with id "+ userId+ " not found to get courses"));
+        Set<Course> courses = user.getCourses();
+        if(courses.isEmpty()){
+            throw new CourseNotFoundExeption("User with id "+ userId+ " has no courses");
+        }
+        return courses;
+    }
 }
     
