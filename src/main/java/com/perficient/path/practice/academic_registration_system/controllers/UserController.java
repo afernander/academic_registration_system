@@ -3,10 +3,10 @@ package com.perficient.path.practice.academic_registration_system.controllers;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.perficient.path.practice.academic_registration_system.models.Course;
 import com.perficient.path.practice.academic_registration_system.models.User;
 import com.perficient.path.practice.academic_registration_system.services.UserService;
 
+import java.util.List;
 import java.util.Set;
 
 import javax.validation.Valid;
@@ -60,6 +60,12 @@ public class UserController {
         userService.deleteUserById(id);
         return new ResponseEntity<>(HttpStatus.OK);
     }
+
+    @GetMapping(value="/{name}/search/firstname")
+    public ResponseEntity<Set<User>> getUsersByName(@PathVariable String name) {
+        Set<User> users = userService.getUsersByFirstName(name);
+        return new ResponseEntity<>(users, HttpStatus.OK);
+    }
     
     @GetMapping(value="/{userId}/addcourse/{courseId}")
     public ResponseEntity<User> addCourseToUser(@PathVariable Long userId, @PathVariable Long courseId) {
@@ -67,9 +73,15 @@ public class UserController {
         return new ResponseEntity<>(updatedUser, HttpStatus.OK);
     }
 
-    @GetMapping(value="/{userId}/courses")
-    public ResponseEntity<Set<Course>> getCoursesByUserId(@PathVariable Long userId) {
-        Set<Course> courses = userService.getCoursesByUserId(userId);
-        return new ResponseEntity<>(courses, HttpStatus.OK);
+    @GetMapping(value="/{courseId}/getusersbycourseid")
+    public ResponseEntity<List<User>> getUsersByCourseId(@PathVariable Long courseId) {
+        List<User> users = userService.getUsersByCourseId(courseId);
+        return new ResponseEntity<>(users, HttpStatus.OK);
+    }
+
+    @DeleteMapping(value="/{userId}/deletecourse/{courseId}")
+    public ResponseEntity<User> deleteCourseFromUser(@PathVariable Long userId, @PathVariable Long courseId) {
+        User updatedUser = userService.deleteCourseFromUser(userId, courseId);
+        return new ResponseEntity<>(updatedUser, HttpStatus.OK);
     }
 }

@@ -1,10 +1,9 @@
 package com.perficient.path.practice.academic_registration_system.services;
 
+import java.util.List;
 import java.util.Set;
 
 import com.perficient.path.practice.academic_registration_system.models.Course;
-import com.perficient.path.practice.academic_registration_system.models.Subject;
-import com.perficient.path.practice.academic_registration_system.models.User;
 
 public interface CourseService {
     
@@ -15,8 +14,7 @@ public interface CourseService {
     void deleteCourseById(Long id);
     Set<Course> getCoursesByName(String name);
     String getCourseDurationByCourseId(Long courseId);
-    //Set<Subject> getSubjectsByCourseId(Long courseId);
-    //Set<User> getUsersByCourseId(Long courseId);
-    
+    List<Course> getCoursesByUserId(Long userId);
+  
     
 }

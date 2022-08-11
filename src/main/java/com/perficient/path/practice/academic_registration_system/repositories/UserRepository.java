@@ -11,4 +11,5 @@ import com.perficient.path.practice.academic_registration_system.models.User;
 public interface UserRepository extends JpaRepository<User, Long> {
 
     List<User> findUsersByCoursesId(Long courseId);
+    List<User> findByFirstNameContaining(String name);
 }

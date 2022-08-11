@@ -13,6 +13,7 @@ import com.perficient.path.practice.academic_registration_system.models.Course;
 public interface CourseRepository extends JpaRepository<Course, Long> {
 
     List<Course> findByNameContaining(String name);
+    List<Course> findCoursesByUsersId(Long userId);
 
 }
     

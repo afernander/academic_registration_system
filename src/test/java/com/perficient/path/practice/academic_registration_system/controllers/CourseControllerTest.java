@@ -1,7 +1,9 @@
 package com.perficient.path.practice.academic_registration_system.controllers;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -24,8 +26,10 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.perficient.path.practice.academic_registration_system.models.Course;
+import com.perficient.path.practice.academic_registration_system.models.User;
 import com.perficient.path.practice.academic_registration_system.models.Course.DurationType;
 import com.perficient.path.practice.academic_registration_system.repositories.CourseRepository;
+import com.perficient.path.practice.academic_registration_system.repositories.UserRepository;
 import com.perficient.path.practice.academic_registration_system.services.CourseService;
 
 public class CourseControllerTest {
@@ -38,9 +42,14 @@ public class CourseControllerTest {
     @Mock
     CourseRepository courseRepository;
 
+    @Mock
+    UserRepository userRepository;
+
     CourseController courseController;
 
     Course courseTest = new Course();
+
+    User userTest = new User();
 
     @BeforeEach
     void setUp() throws Exception {
@@ -52,6 +61,10 @@ public class CourseControllerTest {
         courseTest.setDuration(Double.valueOf(3));
         courseTest.setDurationType(DurationType.HOURS);
         courseTest.setPrice(BigDecimal.valueOf(1000));
+
+        userTest.setId(1L);
+        userTest.setFirstName("John");
+        
 
         courseController = new CourseController(courseService);
         mockMvc = MockMvcBuilders.standaloneSetup(courseController).build();
@@ -193,5 +206,26 @@ public class CourseControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$").value(durationString));
     }
+
+
+    @Test
+    void getCoursesByUserIdTest() throws Exception{
+        Long userId = 1L;
+        Course course = courseTest;
+        List<Course> courses = new ArrayList<>();
+        course.getUsers().add(userTest);
+        courses.add(course);
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(userTest));
+        when(courseRepository.findById(1L)).thenReturn(Optional.of(course));
+        when(courseService.getCoursesByUserId(userId)).thenReturn(courses);
+
+        mockMvc.perform(get("/courses/"+userId+"/getcoursesbyuserid"))
+                .andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$", hasSize(1)))
+                .andExpect(MockMvcResultMatchers.jsonPath("$[0].id").value(1))
+                .andExpect(MockMvcResultMatchers.jsonPath("$[0].name").value("Java"));
+    }
+
         
 }

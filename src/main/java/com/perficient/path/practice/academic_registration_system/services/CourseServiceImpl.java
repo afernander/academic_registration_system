@@ -1,22 +1,30 @@
 package com.perficient.path.practice.academic_registration_system.services;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.springframework.stereotype.Service;
 
 import com.perficient.path.practice.academic_registration_system.errors.CourseNotFoundExeption;
+import com.perficient.path.practice.academic_registration_system.errors.UserNotFoundExeption;
 import com.perficient.path.practice.academic_registration_system.models.Course;
+import com.perficient.path.practice.academic_registration_system.models.User;
 import com.perficient.path.practice.academic_registration_system.repositories.CourseRepository;
+import com.perficient.path.practice.academic_registration_system.repositories.UserRepository;
+
+
 
 @Service
 public class CourseServiceImpl implements CourseService {
 
     private final CourseRepository courseRepository;
 
+    private final UserRepository userRepository;
 
-    public CourseServiceImpl(CourseRepository courseRepository) {
+    public CourseServiceImpl(CourseRepository courseRepository, UserRepository userRepository) {
         this.courseRepository = courseRepository;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -69,4 +77,18 @@ public class CourseServiceImpl implements CourseService {
         Course course = courseRepository.findById(courseId).orElseThrow(()-> new CourseNotFoundExeption("Course with id "+ courseId+ " not found to get duration"));
         return course.getDuration() + " " + course.getDurationType();
     }
+    
+
+    @Override
+    public List<Course> getCoursesByUserId(Long userId) {
+       if(!userRepository.existsById(userId)){
+           throw new UserNotFoundExeption("User with id "+ userId+ " not found to get courses");
+       }
+       List<Course> courses = courseRepository.findCoursesByUsersId(userId);
+       if(courses.isEmpty()){
+           throw new CourseNotFoundExeption("User with id "+ userId+ " not found to get courses");
+       }
+       return courses;
+    }
+
 }
