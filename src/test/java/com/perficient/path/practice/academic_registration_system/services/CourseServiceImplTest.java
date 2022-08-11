@@ -21,11 +21,14 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import com.perficient.path.practice.academic_registration_system.errors.CourseNotFoundExeption;
+import com.perficient.path.practice.academic_registration_system.errors.SubjectNotFoundExeption;
 import com.perficient.path.practice.academic_registration_system.errors.UserNotFoundExeption;
 import com.perficient.path.practice.academic_registration_system.models.Course;
+import com.perficient.path.practice.academic_registration_system.models.Subject;
 import com.perficient.path.practice.academic_registration_system.models.User;
 import com.perficient.path.practice.academic_registration_system.models.Course.DurationType;
 import com.perficient.path.practice.academic_registration_system.repositories.CourseRepository;
+import com.perficient.path.practice.academic_registration_system.repositories.SubjectRepository;
 import com.perficient.path.practice.academic_registration_system.repositories.UserRepository;
 
 
@@ -40,9 +43,14 @@ public class CourseServiceImplTest {
     @Mock
     UserRepository userRepository;
 
+    @Mock
+    SubjectRepository subjectRepository;
+
     Course courseTest = new Course();
 
     User userTest = new User();
+
+    Subject subjectTest = new Subject();
 
     @BeforeEach
     void setUp() throws Exception {
@@ -57,7 +65,11 @@ public class CourseServiceImplTest {
         userTest.setId(1L);
         userTest.setFirstName("John");
 
-        courseService = new CourseServiceImpl(courseRepository, userRepository);
+        subjectTest.setId(1L);
+        subjectTest.setName("OOP");
+        subjectTest.setDescription("Object Oriented Programming");
+
+        courseService = new CourseServiceImpl(courseRepository, userRepository, subjectRepository);
     }
 
     @Test
@@ -250,6 +262,151 @@ public class CourseServiceImplTest {
         when(courseRepository.findCoursesByUsersId(userId)).thenReturn(courses);
 
         assertThrows(CourseNotFoundExeption.class , () -> courseService.getCoursesByUserId(userId));
+    }
+
+    @Test
+    void addSubjectToCourseTest(){
+        Long courseId = courseTest.getId();
+        Long subjectId = subjectTest.getId();
+        Course course = courseTest;
+
+        when(courseRepository.findById(courseId)).thenReturn(Optional.of(course));
+        when(subjectRepository.findById(subjectId)).thenReturn(Optional.of(subjectTest));
+
+        course.getSubjects().add(subjectTest);
+        when(courseRepository.save(course)).thenReturn(course);
+        Course courseReturned = courseService.addSubjectToCourse(courseId, subjectId);
+
+        assertNotNull(courseReturned, "The course is not null");
+        assertEquals(course, courseReturned, "The courses are equal");
+        verify(courseRepository, times(1)).findById(courseId);
+        verify(subjectRepository, times(1)).findById(subjectId);
+        verify(courseRepository, times(1)).save(course);
+        verify(courseRepository, never()).findAll();
+        verify(subjectRepository, never()).findAll();
+    }
+
+    @Test
+    void addSubjectToCourseTest_CourseNotFoundTest() throws Exception{
+        Long courseId = courseTest.getId();
+        Long subjectId = subjectTest.getId();
+        
+        when(courseRepository.findById(courseId)).thenReturn(Optional.empty());
+        when(subjectRepository.findById(subjectId)).thenReturn(Optional.of(subjectTest));
+        
+        assertThrows(CourseNotFoundExeption.class , () -> courseService.addSubjectToCourse(courseId, subjectId));
+    }
+
+    @Test
+    void addSubjectToCourseTest_SubjectNotFoundTest() throws Exception{
+        Long courseId = courseTest.getId();
+        Long subjectId = subjectTest.getId();
+        Course course = courseTest;
+
+        when(courseRepository.findById(courseId)).thenReturn(Optional.of(course));
+        when(subjectRepository.findById(subjectId)).thenReturn(Optional.empty());
+        
+        assertThrows(SubjectNotFoundExeption.class , () -> courseService.addSubjectToCourse(courseId, subjectId));
+    }
+
+    @Test
+    void getCoursesBySubjectIdTest() throws Exception{
+        Long subjectId = subjectTest.getId();
+        Course course = courseTest;
+        course.getSubjects().add(subjectTest);
+        List<Course> courses = new ArrayList<>();
+        courses.add(course);
+
+        when(subjectRepository.existsById(subjectId)).thenReturn(true);
+        when(courseRepository.findCoursesBySubjectsId(subjectId)).thenReturn(courses);
+
+        List<Course> coursesReturned = courseService.getCoursesBySubjectId(subjectId);
+
+        assertNotNull(coursesReturned, "The courses are not null");
+        assertEquals(1, coursesReturned.size(), "The courses size is 1");
+        assertEquals(courses, coursesReturned, "The courses are equal");
+        verify(subjectRepository, times(1)).existsById(subjectId);
+        verify(courseRepository, times(1)).findCoursesBySubjectsId(subjectId);
+        verify(courseRepository, never()).findAll();
+        verify(subjectRepository, never()).findAll();
+    }
+
+    @Test
+    void getCoursesBySubjectId_SubjectNotFoundTest() throws Exception{
+        Long subjectId = subjectTest.getId();
+        Course course = courseTest;
+        course.getSubjects().add(subjectTest);
+        List<Course> courses = new ArrayList<>();
+        courses.add(course);
+
+        when(subjectRepository.existsById(subjectId)).thenReturn(false);
+        when(courseRepository.findCoursesBySubjectsId(subjectId)).thenReturn(courses);
+
+        assertThrows(SubjectNotFoundExeption.class , () -> courseService.getCoursesBySubjectId(subjectId));
+    }
+
+    @Test
+    void getCoursesBySubjectId_CourseNotFoundTest() throws Exception{
+        Long subjectId = subjectTest.getId();
+        Course course = courseTest;
+        course.getSubjects().add(subjectTest);
+        List<Course> courses = new ArrayList<>();
+       
+
+        when(subjectRepository.existsById(subjectId)).thenReturn(true);
+        when(courseRepository.findCoursesBySubjectsId(subjectId)).thenReturn(courses);
+
+        assertThrows(CourseNotFoundExeption.class , () -> courseService.getCoursesBySubjectId(subjectId));
+    }
+
+    @Test
+    void deleteSubjectFromCourseTest() throws Exception{
+        Long courseId = courseTest.getId();
+        Long subjectId = subjectTest.getId();
+        Course course = courseTest;
+
+        when(courseRepository.findById(courseId)).thenReturn(Optional.of(course));
+        when(subjectRepository.findById(subjectId)).thenReturn(Optional.of(subjectTest));
+
+        course.getSubjects().remove(subjectTest);
+        courseService.deleteSubjectFromCourse(courseId, subjectId);
+        when(courseRepository.save(course)).thenReturn(course);
+
+        verify(courseRepository, times(1)).findById(courseId);
+        verify(courseRepository, times(1)).save(course);
+        verify(courseRepository, never()).findAll();
+        verify(subjectRepository, never()).findAll();
+    }
+
+    @Test
+    void deleteSubjectFromCourse_CourseNotFoundTest() throws Exception{
+        Long courseId = courseTest.getId();
+        Long subjectId = subjectTest.getId();
+        Course course = courseTest;
+
+        when(courseRepository.findById(courseId)).thenReturn(Optional.empty());
+
+        assertThrows(CourseNotFoundExeption.class , () -> courseService.deleteSubjectFromCourse(courseId, subjectId));
+        verify(courseRepository, times(1)).findById(courseId);
+        verify(courseRepository, never()).save(course);
+        verify(courseRepository, never()).findAll();
+        verify(subjectRepository, never()).findAll();
+    }
+
+    @Test
+    void deleteSubjectFromCourse_SubjectNotFoundTest() throws Exception{
+        Long courseId = courseTest.getId();
+        Long subjectId = subjectTest.getId();
+        Course course = courseTest;
+
+        when(courseRepository.findById(courseId)).thenReturn(Optional.of(course));
+        when(subjectRepository.findById(subjectId)).thenReturn(Optional.empty());
+
+        assertThrows(SubjectNotFoundExeption.class , () -> courseService.deleteSubjectFromCourse(courseId, subjectId));
+        verify(courseRepository, times(1)).findById(courseId);
+        verify(courseRepository, never()).save(course);
+        verify(courseRepository, never()).findAll();
+        verify(subjectRepository, never()).findAll();
     }
    
 }

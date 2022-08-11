@@ -67,19 +67,19 @@ public class UserController {
         return new ResponseEntity<>(users, HttpStatus.OK);
     }
     
-    @GetMapping(value="/{userId}/addcourse/{courseId}")
+    @GetMapping(value="/{userId}/add/course/{courseId}")
     public ResponseEntity<User> addCourseToUser(@PathVariable Long userId, @PathVariable Long courseId) {
         User updatedUser = userService.addCourseToUser(userId, courseId);
         return new ResponseEntity<>(updatedUser, HttpStatus.OK);
     }
 
-    @GetMapping(value="/{courseId}/getusersbycourseid")
+    @GetMapping(value="/{courseId}/search/byCourseId")
     public ResponseEntity<List<User>> getUsersByCourseId(@PathVariable Long courseId) {
         List<User> users = userService.getUsersByCourseId(courseId);
         return new ResponseEntity<>(users, HttpStatus.OK);
     }
 
-    @DeleteMapping(value="/{userId}/deletecourse/{courseId}")
+    @DeleteMapping(value="/{userId}/delete/course/{courseId}")
     public ResponseEntity<User> deleteCourseFromUser(@PathVariable Long userId, @PathVariable Long courseId) {
         User updatedUser = userService.deleteCourseFromUser(userId, courseId);
         return new ResponseEntity<>(updatedUser, HttpStatus.OK);

@@ -26,9 +26,11 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.perficient.path.practice.academic_registration_system.models.Course;
+import com.perficient.path.practice.academic_registration_system.models.Subject;
 import com.perficient.path.practice.academic_registration_system.models.User;
 import com.perficient.path.practice.academic_registration_system.models.Course.DurationType;
 import com.perficient.path.practice.academic_registration_system.repositories.CourseRepository;
+import com.perficient.path.practice.academic_registration_system.repositories.SubjectRepository;
 import com.perficient.path.practice.academic_registration_system.repositories.UserRepository;
 import com.perficient.path.practice.academic_registration_system.services.CourseService;
 
@@ -45,11 +47,16 @@ public class CourseControllerTest {
     @Mock
     UserRepository userRepository;
 
+    @Mock
+    SubjectRepository subjectRepository;
+
     CourseController courseController;
 
     Course courseTest = new Course();
 
     User userTest = new User();
+
+    Subject subjectTest = new Subject();
 
     @BeforeEach
     void setUp() throws Exception {
@@ -65,6 +72,9 @@ public class CourseControllerTest {
         userTest.setId(1L);
         userTest.setFirstName("John");
         
+        subjectTest.setId(1L);
+        subjectTest.setName("OOP");
+        subjectTest.setDescription("Object Oriented Programming");
 
         courseController = new CourseController(courseService);
         mockMvc = MockMvcBuilders.standaloneSetup(courseController).build();
@@ -220,12 +230,63 @@ public class CourseControllerTest {
         when(courseRepository.findById(1L)).thenReturn(Optional.of(course));
         when(courseService.getCoursesByUserId(userId)).thenReturn(courses);
 
-        mockMvc.perform(get("/courses/"+userId+"/getcoursesbyuserid"))
+        mockMvc.perform(get("/courses/"+userId+"/search/byUserid"))
                 .andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$", hasSize(1)))
                 .andExpect(MockMvcResultMatchers.jsonPath("$[0].id").value(1))
                 .andExpect(MockMvcResultMatchers.jsonPath("$[0].name").value("Java"));
     }
 
+    @Test
+    void addSubjectToCourseTest() throws Exception{
+        Long courseId = courseTest.getId();
+        Long subjectId = subjectTest.getId();
+        Course course = courseTest;
+
+        when(courseRepository.findById(courseId)).thenReturn(Optional.of(course));
+        when(subjectRepository.findById(subjectId)).thenReturn(Optional.of(subjectTest));
+
+        course.getSubjects().add(subjectTest);
         
+        when(courseService.addSubjectToCourse(courseId,subjectId)).thenReturn(course);
+
+        mockMvc.perform(get("/courses/"+courseId+"/add/subject/"+subjectId))
+                .andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.id").value(courseId))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.name").value("Java"));
+    }
+
+    @Test
+    void getCoursesBySubjectIdTest() throws Exception{
+        Long subjectId = subjectTest.getId();
+        Course course = courseTest;
+        List<Course> courses = new ArrayList<>();
+        course.getSubjects().add(subjectTest);
+        courses.add(course);
+        when(subjectRepository.findById(subjectId)).thenReturn(Optional.of(subjectTest));
+        when(courseRepository.findById(course.getId())).thenReturn(Optional.of(course));
+        when(courseService.getCoursesBySubjectId(subjectId)).thenReturn(courses);
+
+        mockMvc.perform(get("/courses/"+subjectId+"/search/bySubjectId"))
+                .andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$", hasSize(1)))
+                .andExpect(MockMvcResultMatchers.jsonPath("$[0].id").value(1))
+                .andExpect(MockMvcResultMatchers.jsonPath("$[0].name").value("Java"));
+    }
+
+    @Test
+    void deleteSubjectFromCourseTest() throws Exception{
+        Long courseId = courseTest.getId();
+        Long subjectId = subjectTest.getId();
+        Course course = courseTest;
+        course.getSubjects().add(subjectTest);
+        when(courseRepository.findById(courseId)).thenReturn(Optional.of(course));
+        when(subjectRepository.findById(subjectId)).thenReturn(Optional.of(subjectTest));
+        when(courseService.deleteSubjectFromCourse(courseId,subjectId)).thenReturn(course);
+
+        mockMvc.perform(delete("/courses/"+courseId+"/delete/subject/"+subjectId))
+                .andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.id").value(courseId))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.name").value("Java"));
+    }
 }

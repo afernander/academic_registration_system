@@ -20,6 +20,8 @@ import com.perficient.path.practice.academic_registration_system.services.Course
 
 
 
+
+
 @RestController
 @RequestMapping("/courses")
 public class CourseController {
@@ -73,10 +75,27 @@ public class CourseController {
         return new ResponseEntity<>(duration, HttpStatus.OK);
     }
 
-    @GetMapping(value="/{id}/getcoursesbyuserid")
+    @GetMapping(value="/{id}/search/byUserid")
     public ResponseEntity<List<Course>> getCoursesByUserId(@PathVariable Long id) {
         List<Course> courses = courseService.getCoursesByUserId(id);
         return new ResponseEntity<>(courses, HttpStatus.OK);
     }
 
+    @GetMapping(value="/{courseId}/add/subject/{subjectId}")
+    public ResponseEntity<Course> addSubjectToCourse(@PathVariable Long courseId, @PathVariable Long subjectId) {
+        Course course = courseService.addSubjectToCourse(courseId, subjectId);
+        return new ResponseEntity<>(course, HttpStatus.OK);
+    }
+
+    @GetMapping(value="/{subjectId}/search/bySubjectId")
+    public ResponseEntity<List<Course>> getCoursesBySubjectId(@PathVariable Long subjectId) {
+        List<Course> courses = courseService.getCoursesBySubjectId(subjectId);
+        return new ResponseEntity<>(courses, HttpStatus.OK);
+    }
+    
+    @DeleteMapping(value="/{courseId}/delete/subject/{subjectId}")
+    public ResponseEntity<Course> deleteSubjectFromCourse(@PathVariable Long courseId, @PathVariable Long subjectId) {
+        Course course = courseService.deleteSubjectFromCourse(courseId, subjectId);
+        return new ResponseEntity<>(course, HttpStatus.OK);
+    }
 }

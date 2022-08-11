@@ -1,12 +1,15 @@
 package com.perficient.path.practice.academic_registration_system.services;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.springframework.stereotype.Service;
 
+import com.perficient.path.practice.academic_registration_system.errors.CourseNotFoundExeption;
 import com.perficient.path.practice.academic_registration_system.errors.SubjectNotFoundExeption;
 import com.perficient.path.practice.academic_registration_system.models.Subject;
+import com.perficient.path.practice.academic_registration_system.repositories.CourseRepository;
 import com.perficient.path.practice.academic_registration_system.repositories.SubjectRepository;
 
 @Service
@@ -14,8 +17,11 @@ public class SubjectServiceImpl implements SubjectService {
 
     private final SubjectRepository subjectRepository;
 
-    public SubjectServiceImpl(SubjectRepository subjectRepository) {
+    private final CourseRepository courseRepository;
+
+    public SubjectServiceImpl(SubjectRepository subjectRepository, CourseRepository courseRepository) {
         this.subjectRepository = subjectRepository;
+        this.courseRepository = courseRepository;
     }
 
     @Override
@@ -84,5 +90,17 @@ public class SubjectServiceImpl implements SubjectService {
             throw new SubjectNotFoundExeption("Subjects with credits "+credits+" not found");
         }
         return subjectsSet;
+    }
+
+    @Override
+    public List<Subject> getSubjectsByCourseId(Long courseId){
+        if(!courseRepository.existsById(courseId)){
+            throw new CourseNotFoundExeption("Course with id "+courseId+" not found");
+        }
+        List<Subject> subjects = subjectRepository.findSubjectsByCoursesId(courseId);
+        if(subjects.isEmpty()){
+            throw new SubjectNotFoundExeption("Subjects with course id "+courseId+" not found");
+        }
+        return subjects;
     }
 }
