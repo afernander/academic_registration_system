@@ -19,9 +19,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+
+import com.perficient.path.practice.academic_registration_system.errors.CourseNotFoundExeption;
+import com.perficient.path.practice.academic_registration_system.errors.UserNotFoundExeption;
 import com.perficient.path.practice.academic_registration_system.models.Course;
+import com.perficient.path.practice.academic_registration_system.models.User;
 import com.perficient.path.practice.academic_registration_system.models.Course.DurationType;
 import com.perficient.path.practice.academic_registration_system.repositories.CourseRepository;
+import com.perficient.path.practice.academic_registration_system.repositories.UserRepository;
 
 
 
@@ -32,7 +37,12 @@ public class CourseServiceImplTest {
    @Mock
     CourseRepository courseRepository;
 
+    @Mock
+    UserRepository userRepository;
+
     Course courseTest = new Course();
+
+    User userTest = new User();
 
     @BeforeEach
     void setUp() throws Exception {
@@ -43,8 +53,11 @@ public class CourseServiceImplTest {
         courseTest.setDescription("Java is a programming language");
         courseTest.setDuration(Double.valueOf(3));
         courseTest.setPrice(BigDecimal.valueOf(1000));
+        
+        userTest.setId(1L);
+        userTest.setFirstName("John");
 
-        courseService = new CourseServiceImpl(courseRepository);
+        courseService = new CourseServiceImpl(courseRepository, userRepository);
     }
 
     @Test
@@ -189,4 +202,54 @@ public class CourseServiceImplTest {
         when(courseRepository.findById(1L)).thenReturn(Optional.empty());
         assertThrows(Exception.class, () -> courseService.getCourseDurationByCourseId(1L));
     }
+
+    @Test
+    void getCoursesByUserIdTest() throws Exception{
+        Long userId = userTest.getId();
+        Course course = courseTest;
+        course.getUsers().add(userTest);
+        List<Course> courses = new ArrayList<>();
+        courses.add(course);
+
+        when(userRepository.existsById(userId)).thenReturn(true);
+        when(courseRepository.findCoursesByUsersId(userId)).thenReturn(courses);
+
+        List<Course> coursesReturned = courseService.getCoursesByUserId(userId);
+
+        assertNotNull(coursesReturned, "The courses are not null");
+        assertEquals(1, coursesReturned.size(), "The courses size is 1");
+        assertEquals(courses, coursesReturned, "The courses are equal");
+        verify(userRepository, times(1)).existsById(userId);
+        verify(courseRepository, times(1)).findCoursesByUsersId(userId);
+        verify(courseRepository, never()).findAll();
+        verify(userRepository, never()).findAll();
+    }
+
+    @Test
+    void getCoursesByUserId_UserNotFoundTest(){
+       Long userId = userTest.getId();
+       Course course = courseTest;
+        course.getUsers().add(userTest);
+        List<Course> courses = new ArrayList<>();
+        courses.add(course);
+
+       when(userRepository.existsById(userId)).thenReturn(false);
+       when(courseRepository.findCoursesByUsersId(userId)).thenReturn(courses);
+
+       assertThrows(UserNotFoundExeption.class , () -> courseService.getCoursesByUserId(userId));
+    }
+
+    @Test
+    void getCoursesByUserId_CourseNotFoundTest(){
+        Long userId = userTest.getId();
+        Course course = courseTest;
+        course.getUsers().add(userTest);
+        List<Course> courses = new ArrayList<>();
+
+        when(userRepository.existsById(userId)).thenReturn(true);
+        when(courseRepository.findCoursesByUsersId(userId)).thenReturn(courses);
+
+        assertThrows(CourseNotFoundExeption.class , () -> courseService.getCoursesByUserId(userId));
+    }
+   
 }

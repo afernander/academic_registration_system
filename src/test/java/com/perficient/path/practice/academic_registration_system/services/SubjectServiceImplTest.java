@@ -162,7 +162,6 @@ public class SubjectServiceImplTest {
     @Test
     public void getSubjectByNameTest(){
         String name = "Calculus";
-        Subject subject = subjectTest;
         Subject subject2 = new Subject();
         subject2.setId(2L);
         subject2.setName("Calculus 2");
@@ -193,7 +192,6 @@ public class SubjectServiceImplTest {
     @Test
     public void getSubjectByAreaTest(){
         String area = subjectTest.getArea();
-        Subject subject = subjectTest;
         Subject subject2 = new Subject();
         subject2.setId(2L);
         subject2.setArea("history");
@@ -224,7 +222,6 @@ public class SubjectServiceImplTest {
     @Test
     public void getSubjectByCreditsTest(){
         Integer credits = subjectTest.getCredits();
-        Subject subject = subjectTest;
         Subject subject2 = new Subject();
         subject2.setId(2L);
         subject2.setCredits(5);;

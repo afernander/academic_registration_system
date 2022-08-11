@@ -1,5 +1,6 @@
 package com.perficient.path.practice.academic_registration_system.controllers;
 
+import java.util.List;
 import java.util.Set;
 
 import javax.validation.Valid;
@@ -16,6 +17,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.perficient.path.practice.academic_registration_system.models.Course;
 import com.perficient.path.practice.academic_registration_system.services.CourseService;
+
+
 
 @RestController
 @RequestMapping("/courses")
@@ -69,4 +72,11 @@ public class CourseController {
         String duration = courseService.getCourseDurationByCourseId(id);
         return new ResponseEntity<>(duration, HttpStatus.OK);
     }
+
+    @GetMapping(value="/{id}/getcoursesbyuserid")
+    public ResponseEntity<List<Course>> getCoursesByUserId(@PathVariable Long id) {
+        List<Course> courses = courseService.getCoursesByUserId(id);
+        return new ResponseEntity<>(courses, HttpStatus.OK);
+    }
+
 }

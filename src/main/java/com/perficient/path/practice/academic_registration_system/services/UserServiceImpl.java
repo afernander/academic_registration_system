@@ -1,24 +1,32 @@
 package com.perficient.path.practice.academic_registration_system.services;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+
+import javax.transaction.Transactional;
 
 import org.springframework.stereotype.Service;
 
+import com.perficient.path.practice.academic_registration_system.errors.CourseNotFoundExeption;
 import com.perficient.path.practice.academic_registration_system.errors.UserNotFoundExeption;
+import com.perficient.path.practice.academic_registration_system.models.Course;
 import com.perficient.path.practice.academic_registration_system.models.User;
+import com.perficient.path.practice.academic_registration_system.repositories.CourseRepository;
 import com.perficient.path.practice.academic_registration_system.repositories.UserRepository;
 
-import lombok.extern.slf4j.Slf4j;
 
 @Service
-@Slf4j
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
 
-    public UserServiceImpl(UserRepository userRepository) {
+    private final CourseRepository courseRepository;
+
+
+    public UserServiceImpl(UserRepository userRepository, CourseRepository courseRepository) {
         this.userRepository = userRepository;
+        this.courseRepository = courseRepository;
     }
     
     @Override
@@ -58,5 +66,42 @@ public class UserServiceImpl implements UserService {
         userRepository.delete(userToDelete);
     }
 
+    @Override
+    public User addCourseToUser(Long userId, Long courseId) {
+        User userToUpdate = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundExeption("User with id "+ userId+ " not found to update"));
+        Course courseToAdd = courseRepository.findById(courseId).orElseThrow(() -> new CourseNotFoundExeption("Course with id "+ courseId+ " not found to add"));
+        userToUpdate.getCourses().add(courseToAdd);
+        return userRepository.save(userToUpdate);
+    }
+
+    @Override
+    public Set<User> getUsersByFirstName(String name) {
+        Set<User> usersSet = new HashSet<>();
+        userRepository.findByFirstNameContaining(name).iterator().forEachRemaining(usersSet::add);
+        if(usersSet.isEmpty()) {
+            throw new UserNotFoundExeption("User with name "+ name+ " not found");
+        }
+        return usersSet;
+    }
+
+    @Override
+    public List<User> getUsersByCourseId(Long courseId) {
+        if(!courseRepository.existsById(courseId)){
+            throw new CourseNotFoundExeption("Course with id "+ courseId+ " not found to get users");
+        }
+        List<User> users = userRepository.findUsersByCoursesId(courseId);
+        if(users.isEmpty()){
+            throw new UserNotFoundExeption("Course with id "+ courseId+ " has no users");
+        }
+        return users;
+    }
+
+    @Override
+    public User deleteCourseFromUser(Long userId, Long courseId) {
+        User userToUpdate = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundExeption("User with id "+ userId+ " not found to update"));
+        Course courseToDelete = courseRepository.findById(courseId).orElseThrow(() -> new CourseNotFoundExeption("Course with id "+ courseId+ " not found to delete"));
+        userToUpdate.getCourses().remove(courseToDelete);
+        return userRepository.save(userToUpdate);
+    }
 }
     

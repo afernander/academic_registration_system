@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.times;
@@ -18,8 +19,11 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import com.perficient.path.practice.academic_registration_system.repositories.CourseRepository;
 import com.perficient.path.practice.academic_registration_system.repositories.UserRepository;
+import com.perficient.path.practice.academic_registration_system.errors.CourseNotFoundExeption;
 import com.perficient.path.practice.academic_registration_system.errors.UserNotFoundExeption;
+import com.perficient.path.practice.academic_registration_system.models.Course;
 import com.perficient.path.practice.academic_registration_system.models.User;
 
 public class UserServiceImplTest {
@@ -29,8 +33,12 @@ public class UserServiceImplTest {
     @Mock
     UserRepository userRepository;
     
+    @Mock
+    CourseRepository courseRepository;
 
     User userTest = new User();
+
+    Course courseTest = new Course();
 
     @BeforeEach
     public void setUp() throws Exception {
@@ -44,7 +52,11 @@ public class UserServiceImplTest {
         userTest.setPassword("PASSWORD");
         userTest.setRole("student");
 
-        userService = new UserServiceImpl(userRepository);
+        courseTest.setId(1L);
+        courseTest.setName("Java");
+        courseTest.setDescription("Java is a programming language");
+
+        userService = new UserServiceImpl(userRepository, courseRepository);
     }
 
 
@@ -148,5 +160,179 @@ public class UserServiceImplTest {
         when(userRepository.findById(1L)).thenReturn(Optional.empty());
         
         assertThrows(UserNotFoundExeption.class, () -> userService.deleteUserById(1L));
+    }
+
+    @Test
+    void addCourseToUserTest() throws Exception{
+        Long userId = userTest.getId();
+        Long courseId = courseTest.getId();
+        User user = userTest;
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(courseRepository.findById(courseId)).thenReturn(Optional.of(courseTest));
+
+        user.getCourses().add(courseTest);
+        when(userRepository.save(user)).thenReturn(user);
+        User userRetruned=userService.addCourseToUser(userId, courseId);
+
+        assertNotNull(userRetruned, "User should not be null");
+        assertEquals(user, userRetruned);
+        verify(userRepository, times(1)).findById(1L);
+        verify(courseRepository, times(1)).findById(1L);
+        verify(userRepository, times(1)).save(user);
+        verify(userRepository, never()).findAll();
+        verify(courseRepository, never()).findAll();
+    }
+
+    @Test
+    void addCourseToUser_UserNotFoundTest() throws Exception{
+        Long userId = userTest.getId();
+        Long courseId = courseTest.getId();
+
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+        when(courseRepository.findById(courseId)).thenReturn(Optional.of(courseTest));
+
+        assertThrows(UserNotFoundExeption.class, () -> userService.addCourseToUser(userId, courseId));
+    }
+
+    @Test
+    void addCourseToUser_CourseNotFoundTest() throws Exception{
+        Long userId = userTest.getId();
+        Long courseId = courseTest.getId();
+        User user = userTest;
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(courseRepository.findById(courseId)).thenReturn(Optional.empty());
+
+        assertThrows(CourseNotFoundExeption.class, () -> userService.addCourseToUser(userId, courseId));
+    }
+
+    @Test
+    void deleteCourseFromUserTest() throws Exception{
+        Long userId = userTest.getId();
+        Long courseId = courseTest.getId();
+        User user = userTest;
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(courseRepository.findById(courseId)).thenReturn(Optional.of(courseTest));
+
+        user.getCourses().remove(courseTest);
+        userService.deleteCourseFromUser(userId, courseId);
+        when(userRepository.save(user)).thenReturn(user);
+
+        verify(userRepository, times(1)).findById(userId);
+        verify(userRepository, times(1)).save(user);
+        verify(userRepository, never()).findAll();
+        verify(courseRepository, never()).findAll();
+    }
+
+    @Test
+    void deleteCourseFromUser_UserNotFoundTest() throws Exception{
+        Long userId = userTest.getId();
+        Long courseId = courseTest.getId();
+        User user = userTest;
+
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+          
+        assertThrows(UserNotFoundExeption.class, () -> userService.deleteCourseFromUser(userId, courseId));
+        verify(userRepository, times(1)).findById(userId);
+        verify(userRepository, never()).save(user);
+        verify(userRepository, never()).findAll();
+        verify(courseRepository, never()).findAll();
+    }
+
+    @Test
+    void deleteCourseFromUser_CourseNotFoundTest() throws Exception{
+        Long userId = userTest.getId();
+        Long courseId = courseTest.getId();
+        User user = userTest;
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(courseRepository.findById(courseId)).thenReturn(Optional.empty());
+        assertThrows(CourseNotFoundExeption.class, () -> userService.deleteCourseFromUser(userId, courseId));
+        verify(userRepository, times(1)).findById(userId);
+        verify(userRepository, never()).save(user);
+        verify(userRepository, never()).findAll();
+        verify(courseRepository, never()).findAll();
+    }
+
+
+    @Test
+    void getUsersByCourseId() throws Exception{
+        Long courseId = courseTest.getId();
+        User user = userTest;
+        user.getCourses().add(courseTest);
+        List<User> users = new ArrayList<>();
+        users.add(user);
+        
+        when(courseRepository.existsById(courseId)).thenReturn(true);
+        when(userRepository.findUsersByCoursesId(courseId)).thenReturn(users);
+
+        List<User> usersByCourseId = userService.getUsersByCourseId(courseId);
+
+        assertNotNull(usersByCourseId, "Users should not be null");
+        assertEquals(1, usersByCourseId.size());
+        assertEquals(users, usersByCourseId);
+        verify(courseRepository, times(1)).existsById(courseId);
+        verify(userRepository, times(1)).findUsersByCoursesId(courseId);
+        verify(userRepository, never()).findAll();
+        verify(courseRepository, never()).findAll();
+
+    }
+
+    @Test
+    void getUsersByFirstNameTest(){
+        String firstName = userTest.getFirstName();
+        User user = new User();
+        user.setId(2L);
+        user.setFirstName("PEPE");
+        List<User> users = new ArrayList<>();
+        users.add(userTest);
+        users.add(user);
+
+        List<User> usersByFirstName = users.stream().filter(u -> u.getFirstName().toLowerCase().contains(firstName.toLowerCase())).collect(Collectors.toList());
+        when(userRepository.findByFirstNameContaining(firstName)).thenReturn(usersByFirstName);
+
+        Set<User> usersReturned = userService.getUsersByFirstName(firstName);
+
+        assertNotNull(usersReturned, "Users should not be null");
+        assertEquals(1, usersReturned.size());
+        verify(userRepository, times(1)).findByFirstNameContaining(firstName);
+        verify(userRepository, never()).findAll();
+        verify(courseRepository, never()).findAll();
+    }
+
+    @Test
+    void getUsersByFirstNameNotFoundTest(){
+        String userName = "Jonh";
+        when(userRepository.findByFirstNameContaining(userName)).thenReturn(new ArrayList<>());
+        assertThrows(Exception.class, () -> userService.getUsersByFirstName(userName));
+    }
+
+    @Test
+    void getUsersByCourseId_CourseNotFoundTest() throws Exception{
+        Long courseId = courseTest.getId();
+        User user = userTest;
+        user.getCourses().add(courseTest);
+        List<User> users = new ArrayList<>();
+        users.add(user);
+        
+        when(courseRepository.existsById(courseId)).thenReturn(false);
+        when(userRepository.findUsersByCoursesId(courseId)).thenReturn(users);
+
+        assertThrows(CourseNotFoundExeption.class, () -> userService.getUsersByCourseId(courseId));
+    }
+
+    @Test
+    void getUsersByCourseId_UserNotFoundTest() throws Exception{
+        Long courseId = courseTest.getId();
+        User user = userTest;
+        user.getCourses().add(courseTest);
+        List<User> users = new ArrayList<>();
+        
+        when(courseRepository.existsById(courseId)).thenReturn(true);
+        when(userRepository.findUsersByCoursesId(courseId)).thenReturn(users);
+
+        assertThrows(UserNotFoundExeption.class, () -> userService.getUsersByCourseId(courseId));
     }
 }
