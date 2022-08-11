@@ -186,7 +186,7 @@ public class UserControllerTest {
         user.getCourses().add(courseTest);
         when(userService.addCourseToUser(userId,courseId)).thenReturn(user);
         
-        mockMvc.perform(get("/users/"+userId+"/addcourse/"+courseId))
+        mockMvc.perform(get("/users/"+userId+"/add/course/"+courseId))
                 .andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.id").value(userId))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.firstName").value("John"));
@@ -223,7 +223,7 @@ public class UserControllerTest {
         when(courseRepository.findById(1L)).thenReturn(Optional.of(courseTest));
         when(userService.getUsersByCourseId(courseId)).thenReturn(users);
 
-        mockMvc.perform(get("/users/"+courseId+"/getusersbycourseid"))
+        mockMvc.perform(get("/users/"+courseId+"/search/byCourseId"))
                 .andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$[0].id").value(1L))
                 .andExpect(MockMvcResultMatchers.jsonPath("$[0].firstName").value("John"));
@@ -239,7 +239,7 @@ public class UserControllerTest {
         when(courseRepository.findById(1L)).thenReturn(Optional.of(courseTest));
         when(userService.deleteCourseFromUser(userId,courseId)).thenReturn(user);
         
-        mockMvc.perform(delete("/users/"+userId+"/deletecourse/"+courseId))
+        mockMvc.perform(delete("/users/"+userId+"/delete/course/"+courseId))
                 .andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.id").value(userId))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.firstName").value("John"));

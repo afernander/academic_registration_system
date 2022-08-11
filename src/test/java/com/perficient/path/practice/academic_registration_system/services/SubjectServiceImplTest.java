@@ -21,7 +21,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import com.perficient.path.practice.academic_registration_system.errors.CourseNotFoundExeption;
+import com.perficient.path.practice.academic_registration_system.errors.SubjectNotFoundExeption;
+import com.perficient.path.practice.academic_registration_system.models.Course;
 import com.perficient.path.practice.academic_registration_system.models.Subject;
+import com.perficient.path.practice.academic_registration_system.repositories.CourseRepository;
 import com.perficient.path.practice.academic_registration_system.repositories.SubjectRepository;
 
 
@@ -33,7 +37,12 @@ public class SubjectServiceImplTest {
     @Mock
     SubjectRepository subjectRepository;
 
+    @Mock 
+    CourseRepository courseRepository;
+
     Subject subjectTest = new Subject();
+
+    Course courseTest = new Course();
 
     @BeforeEach
     public void setup() {
@@ -48,7 +57,10 @@ public class SubjectServiceImplTest {
         subjectTest.setPrerequisites("Math");
         subjectTest.setCorequisites("None");
 
-        subjectService = new SubjectServiceImpl(subjectRepository);
+        courseTest.setId(1L);
+        courseTest.setName("Java");
+
+        subjectService = new SubjectServiceImpl(subjectRepository, courseRepository);
     }
 
     @Test
@@ -247,5 +259,54 @@ public class SubjectServiceImplTest {
         assertThrows(Exception.class, () -> subjectService.getSubjectsByCredits(credits));
         verify(subjectRepository, times(1)).findByCredits(credits);
         verify(subjectRepository, never()).findById(anyLong());
+    }
+
+    @Test
+    void getSubjectsByCourseIdTest() throws Exception{
+        Long courseId = courseTest.getId();
+        Subject subject = subjectTest;
+        subject.getCourses().add(courseTest);
+        List<Subject> subjects = new ArrayList<>();
+        subjects.add(subject);
+
+        when(courseRepository.existsById(courseId)).thenReturn(true);
+        when(subjectRepository.findSubjectsByCoursesId(courseId)).thenReturn(subjects);
+
+        List<Subject> subjectsReturned = subjectService.getSubjectsByCourseId(courseId);
+
+        assertNotNull(subjectsReturned, "The returned subjects should not be null");
+        assertEquals(1, subjectsReturned.size(), "The returned subjects should be the same as the mocked ones");
+        assertEquals(subjects, subjectsReturned, "The returned subjects should be the same as the mocked ones");
+        verify(courseRepository, times(1)).existsById(courseId);
+        verify(subjectRepository, times(1)).findSubjectsByCoursesId(courseId);
+        verify(subjectRepository, never()).findAll();
+        verify(courseRepository, never()).findAll();
+    }
+
+    @Test
+    void getSubjectsByCourseIdTest_CourseNotFoundTest() throws Exception{
+        Long courseId = courseTest.getId();
+        Subject subject = subjectTest;
+        subject.getCourses().add(courseTest);
+        List<Subject> subjects = new ArrayList<>();
+        subjects.add(subject);
+
+        when(courseRepository.existsById(courseId)).thenReturn(false);
+        when(subjectRepository.findSubjectsByCoursesId(courseId)).thenReturn(subjects);
+
+        assertThrows(CourseNotFoundExeption.class, () -> subjectService.getSubjectsByCourseId(courseId));
+    }
+
+    @Test
+    void getSubjectsByCourseIdTest_SubjectNotFoundTest() throws Exception{
+        Long courseId = courseTest.getId();
+        Subject subject = subjectTest;
+        subject.getCourses().add(courseTest);
+        List<Subject> subjects = new ArrayList<>();
+
+        when(courseRepository.existsById(courseId)).thenReturn(true);
+        when(subjectRepository.findSubjectsByCoursesId(courseId)).thenReturn(subjects);
+
+        assertThrows(SubjectNotFoundExeption.class, () -> subjectService.getSubjectsByCourseId(courseId));
     }
 }

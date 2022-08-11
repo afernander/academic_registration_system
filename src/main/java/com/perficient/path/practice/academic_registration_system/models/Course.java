@@ -64,7 +64,7 @@ public class Course {
     @JsonIgnore
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    private Set<Subject> subjects;
+    private Set<Subject> subjects = new HashSet<>();
 
 
     public enum DurationType{

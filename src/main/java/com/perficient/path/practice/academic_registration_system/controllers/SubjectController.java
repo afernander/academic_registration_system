@@ -1,5 +1,6 @@
 package com.perficient.path.practice.academic_registration_system.controllers;
 
+import java.util.List;
 import java.util.Set;
 
 import javax.validation.Valid;
@@ -72,6 +73,12 @@ public class SubjectController {
     @GetMapping(value = "/{credits}/search/credits")
     public ResponseEntity<Set<Subject>> getSubjectsByCredits(@PathVariable Integer credits) {
         Set<Subject> subjects = subjectService.getSubjectsByCredits(credits);
+        return new ResponseEntity<>(subjects, HttpStatus.OK);
+    }
+
+    @GetMapping(value = "/{courseId}/search/byCourseId")
+    public ResponseEntity<List<Subject>> getSubjectsByCourseId(@PathVariable Long courseId) {
+        List<Subject> subjects = subjectService.getSubjectsByCourseId(courseId);
         return new ResponseEntity<>(subjects, HttpStatus.OK);
     }
 }

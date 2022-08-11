@@ -1,8 +1,8 @@
 package com.perficient.path.practice.academic_registration_system.services;
 
+import java.util.List;
 import java.util.Set;
 
-import com.perficient.path.practice.academic_registration_system.models.Course;
 import com.perficient.path.practice.academic_registration_system.models.Subject;
 
 public interface SubjectService {
@@ -15,6 +15,7 @@ public interface SubjectService {
     Set<Subject> getSubjectsByName(String name);
     Set<Subject> getSubjectsByArea(String area);
     Set<Subject> getSubjectsByCredits(Integer credits);
+    List<Subject> getSubjectsByCourseId(Long courseId);
     //Set<Subject> getSubjectsByProfessorId(Long professorId);
     //Set<Course> getCoursesBySubjectId(Long subjectId);
 }

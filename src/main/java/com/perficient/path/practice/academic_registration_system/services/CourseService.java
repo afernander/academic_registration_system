@@ -15,6 +15,9 @@ public interface CourseService {
     Set<Course> getCoursesByName(String name);
     String getCourseDurationByCourseId(Long courseId);
     List<Course> getCoursesByUserId(Long userId);
+    Course addSubjectToCourse(Long courseId, Long subjectId);
+    List<Course> getCoursesBySubjectId(Long subjectId);
+    Course deleteSubjectFromCourse(Long courseId, Long subjectId);
   
     
 }
