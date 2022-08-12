@@ -16,6 +16,5 @@ public interface SubjectService {
     Set<Subject> getSubjectsByArea(String area);
     Set<Subject> getSubjectsByCredits(Integer credits);
     List<Subject> getSubjectsByCourseId(Long courseId);
-    //Set<Subject> getSubjectsByProfessorId(Long professorId);
-    //Set<Course> getCoursesBySubjectId(Long subjectId);
+    List<Subject> getSubjectsByProfessorId(Long professorId);
 }

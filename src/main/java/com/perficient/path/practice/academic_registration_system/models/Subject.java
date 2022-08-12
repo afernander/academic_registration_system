@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
@@ -32,6 +33,7 @@ public class Subject {
     private Long id;
 
     @NotBlank(message = "Subject name is mandatory")
+    @Column(unique = true)
     private String name;
 
     @NotNull(message = "Subject description is required")
@@ -61,6 +63,8 @@ public class Subject {
     private Set<Course> courses = new HashSet<>();
 
     @ManyToOne
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Professor professor;
 
 }

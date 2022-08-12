@@ -24,7 +24,9 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.perficient.path.practice.academic_registration_system.models.Professor;
+import com.perficient.path.practice.academic_registration_system.models.Subject;
 import com.perficient.path.practice.academic_registration_system.repositories.ProfessorRepository;
+import com.perficient.path.practice.academic_registration_system.repositories.SubjectRepository;
 import com.perficient.path.practice.academic_registration_system.services.ProfessorService;
 
 public class ProfessorControllerTest {
@@ -37,17 +39,26 @@ public class ProfessorControllerTest {
     @Mock
     ProfessorRepository professorRepository;
 
+    @Mock
+    SubjectRepository subjectRepository;
+
     ProfessorController professorController;
 
     Professor professorTest= new Professor();
+
+    Subject subjectTest= new Subject();
 
     @BeforeEach
     void setUp() throws Exception {
         MockitoAnnotations.openMocks(this);
 
         professorTest.setId(1L);
+        professorTest.setCode("PROF001");
         professorTest.setArea("Computer Science");
         professorTest.setSpecialization("Software Engineering");
+
+        subjectTest.setId(1L);
+        subjectTest.setName("Software Engineering");
 
         professorController = new ProfessorController(professorService);
         mockMvc = MockMvcBuilders.standaloneSetup(professorController).build();
@@ -81,12 +92,12 @@ public class ProfessorControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$").isArray())
                 .andExpect(MockMvcResultMatchers.jsonPath("$").value(hasSize(2)))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[0].id").value(1))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[0].area").value("Computer Science"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[0].specialization").value("Software Engineering"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[1].id").value(2))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[1].area").value("Music"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[1].specialization").value("Flute"));
+                .andExpect(MockMvcResultMatchers.jsonPath("$[1].id").value(1))
+                .andExpect(MockMvcResultMatchers.jsonPath("$[1].area").value("Computer Science"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$[1].specialization").value("Software Engineering"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$[0].id").value(2))
+                .andExpect(MockMvcResultMatchers.jsonPath("$[0].area").value("Music"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$[0].specialization").value("Flute"));
     }
 
     @Test
@@ -183,5 +194,51 @@ public class ProfessorControllerTest {
                 .andExpect(MockMvcResultMatchers.jsonPath("$[0].id").value(1))
                 .andExpect(MockMvcResultMatchers.jsonPath("$[0].area").value("Computer Science"))
                 .andExpect(MockMvcResultMatchers.jsonPath("$[0].specialization").value("Software Engineering"));
+    }
+
+    @Test
+    void addSubjectToProfessor() throws Exception{
+        Long profesorid = professorTest.getId();
+        Long subjectid = subjectTest.getId();
+        Professor professor = professorTest;
+        Subject subject = subjectTest;
+
+        when(professorRepository.findById(profesorid)).thenReturn(Optional.of(professor));
+        when(subjectRepository.findById(subjectid)).thenReturn(Optional.of(subject));
+        professor.getSubjects().add(subject);
+        subject.setProfessor(professor);
+        when(subjectRepository.save(subject)).thenReturn(subject);
+        when(professorRepository.save(professor)).thenReturn(professor);
+        when(professorService.addSubjectToProfessor(profesorid,subjectid)).thenReturn(professor);
+   
+        mockMvc.perform(get("/professors/"+profesorid+"/add/subject/"+subjectid))
+                .andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.id").value(1))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.area").value("Computer Science"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.specialization").value("Software Engineering"));
+    }
+
+    @Test
+    void deleteSubjectFromProfessor() throws Exception{
+        Long profesorid = professorTest.getId();
+        Long subjectid = subjectTest.getId();
+        Professor professor = professorTest;
+        Subject subject = subjectTest;
+
+        professor.getSubjects().add(subject);
+        subject.setProfessor(professor);
+        when(professorRepository.findById(profesorid)).thenReturn(Optional.of(professor));
+        when(subjectRepository.findById(subjectid)).thenReturn(Optional.of(subject));
+        professor.getSubjects().remove(subject);
+        subject.setProfessor(null);
+        when(subjectRepository.save(subject)).thenReturn(subject);
+        when(professorRepository.save(professor)).thenReturn(professor);
+        when(professorService.deleteSubjectFromProfessor(profesorid,subjectid)).thenReturn(professor);
+    
+        mockMvc.perform(delete("/professors/"+profesorid+"/delete/subject/"+subjectid))
+                .andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.id").value(1))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.area").value("Computer Science"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.specialization").value("Software Engineering"));
     }
 }

@@ -81,4 +81,10 @@ public class SubjectController {
         List<Subject> subjects = subjectService.getSubjectsByCourseId(courseId);
         return new ResponseEntity<>(subjects, HttpStatus.OK);
     }
+
+    @GetMapping(value = "/{professorId}/search/byProfessorId")
+    public ResponseEntity<List<Subject>> getSubjectsByProfessorId(@PathVariable Long professorId) {
+        List<Subject> subjects = subjectService.getSubjectsByProfessorId(professorId);
+        return new ResponseEntity<>(subjects, HttpStatus.OK);
+    }
 }

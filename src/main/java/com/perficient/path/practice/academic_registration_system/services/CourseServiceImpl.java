@@ -7,6 +7,7 @@ import java.util.Set;
 import org.springframework.stereotype.Service;
 
 import com.perficient.path.practice.academic_registration_system.errors.CourseNotFoundExeption;
+import com.perficient.path.practice.academic_registration_system.errors.DuplicatedDataExeption;
 import com.perficient.path.practice.academic_registration_system.errors.SubjectNotFoundExeption;
 import com.perficient.path.practice.academic_registration_system.errors.UserNotFoundExeption;
 import com.perficient.path.practice.academic_registration_system.models.Course;
@@ -47,7 +48,13 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     public Course createCourse(Course course) {
-        return courseRepository.save(course);
+        try{
+            courseRepository.save(course);
+        }catch(Exception e){
+            throw new DuplicatedDataExeption("Course with name "+ course.getName()+ " already exists");
+        }
+        
+        return course;
     }
 
     @Override

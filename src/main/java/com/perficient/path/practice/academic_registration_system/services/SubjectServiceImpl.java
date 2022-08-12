@@ -7,9 +7,12 @@ import java.util.Set;
 import org.springframework.stereotype.Service;
 
 import com.perficient.path.practice.academic_registration_system.errors.CourseNotFoundExeption;
+import com.perficient.path.practice.academic_registration_system.errors.DuplicatedDataExeption;
+import com.perficient.path.practice.academic_registration_system.errors.ProfessorNotFoundExeption;
 import com.perficient.path.practice.academic_registration_system.errors.SubjectNotFoundExeption;
 import com.perficient.path.practice.academic_registration_system.models.Subject;
 import com.perficient.path.practice.academic_registration_system.repositories.CourseRepository;
+import com.perficient.path.practice.academic_registration_system.repositories.ProfessorRepository;
 import com.perficient.path.practice.academic_registration_system.repositories.SubjectRepository;
 
 @Service
@@ -19,9 +22,12 @@ public class SubjectServiceImpl implements SubjectService {
 
     private final CourseRepository courseRepository;
 
-    public SubjectServiceImpl(SubjectRepository subjectRepository, CourseRepository courseRepository) {
+    private final ProfessorRepository professorRepository;
+
+    public SubjectServiceImpl(SubjectRepository subjectRepository, CourseRepository courseRepository, ProfessorRepository professorRepository) {
         this.subjectRepository = subjectRepository;
         this.courseRepository = courseRepository;
+        this.professorRepository = professorRepository;
     }
 
     @Override
@@ -39,7 +45,13 @@ public class SubjectServiceImpl implements SubjectService {
 
     @Override
     public Subject createSubject(Subject subject) {
-        return subjectRepository.save(subject);
+        try{
+            subjectRepository.save(subject);
+        }catch(Exception e){
+            throw new DuplicatedDataExeption("Subject with name "+ subject.getName()+ " already exists");
+        }
+
+        return subject;
     }
 
     @Override
@@ -100,6 +112,18 @@ public class SubjectServiceImpl implements SubjectService {
         List<Subject> subjects = subjectRepository.findSubjectsByCoursesId(courseId);
         if(subjects.isEmpty()){
             throw new SubjectNotFoundExeption("Subjects with course id "+courseId+" not found");
+        }
+        return subjects;
+    }
+
+    @Override
+    public List<Subject> getSubjectsByProfessorId(Long professorId){
+        if(!professorRepository.existsById(professorId)){
+            throw new ProfessorNotFoundExeption("Professor with id "+professorId+" not found");
+        }
+        List<Subject> subjects = subjectRepository.findSubjectsByProfessorId(professorId);
+        if(subjects.isEmpty()){
+            throw new SubjectNotFoundExeption("Subjects with professor id "+professorId+" not found");
         }
         return subjects;
     }

@@ -21,6 +21,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import com.perficient.path.practice.academic_registration_system.errors.CourseNotFoundExeption;
+import com.perficient.path.practice.academic_registration_system.errors.DuplicatedDataExeption;
 import com.perficient.path.practice.academic_registration_system.errors.SubjectNotFoundExeption;
 import com.perficient.path.practice.academic_registration_system.errors.UserNotFoundExeption;
 import com.perficient.path.practice.academic_registration_system.models.Course;
@@ -119,6 +120,13 @@ public class CourseServiceImplTest {
         assertNotNull(courseReturned,"The course is not null");
         assertEquals(course, courseReturned, "The courses are equal");
         verify(courseRepository, times(1)).save(course);
+    }
+
+    @Test
+    void createCourse_DuplicatedDataExeptionTest(){
+        Course course = courseTest;
+        when(courseRepository.save(course)).thenThrow(DuplicatedDataExeption.class);
+        assertThrows(DuplicatedDataExeption.class, () -> courseService.createCourse(course));
     }
 
     @Test

@@ -75,7 +75,7 @@ public class CourseController {
         return new ResponseEntity<>(duration, HttpStatus.OK);
     }
 
-    @GetMapping(value="/{id}/search/byUserid")
+    @GetMapping(value="/{id}/search/byUserId")
     public ResponseEntity<List<Course>> getCoursesByUserId(@PathVariable Long id) {
         List<Course> courses = courseService.getCoursesByUserId(id);
         return new ResponseEntity<>(courses, HttpStatus.OK);

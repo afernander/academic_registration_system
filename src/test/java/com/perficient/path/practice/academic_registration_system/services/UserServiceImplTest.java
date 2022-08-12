@@ -23,6 +23,7 @@ import com.perficient.path.practice.academic_registration_system.repositories.Co
 import com.perficient.path.practice.academic_registration_system.repositories.ProfessorRepository;
 import com.perficient.path.practice.academic_registration_system.repositories.UserRepository;
 import com.perficient.path.practice.academic_registration_system.errors.CourseNotFoundExeption;
+import com.perficient.path.practice.academic_registration_system.errors.DuplicatedDataExeption;
 import com.perficient.path.practice.academic_registration_system.errors.ProfessorNotFoundExeption;
 import com.perficient.path.practice.academic_registration_system.errors.UserNotFoundExeption;
 import com.perficient.path.practice.academic_registration_system.models.Course;
@@ -115,6 +116,13 @@ public class UserServiceImplTest {
         assertNotNull(createdUser,"User should not be null");
         assertEquals(user, createdUser);
         verify(userRepository, times(1)).save(user);
+    }
+
+    @Test
+    void createUser_DuplicatedDataExeptionTest()throws DuplicatedDataExeption{
+        User user = userTest;
+        when(userRepository.save(user)).thenThrow(DuplicatedDataExeption.class);
+        assertThrows(DuplicatedDataExeption.class, () -> userService.createUser(user));
     }
 
     @Test
@@ -391,6 +399,62 @@ public class UserServiceImplTest {
         assertThrows(ProfessorNotFoundExeption.class, () -> userService.addProfessorToUser(userId, professorId));
         verify(userRepository, times(1)).findById(userId);
         verify(userRepository, never()).save(user);
+        verify(professorRepository, never()).findAll();
+        verify(professorRepository, times(1)).findById(professorId);
+    }
+
+    @Test
+    void deleteProfessorFromUserTest() throws Exception{
+        Long userId = userTest.getId();
+        Long professorId = professorTest.getId();
+        User user = userTest;
+        Professor professor = professorTest;
+        user.setProfessor(professor);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(professorRepository.findById(professorId)).thenReturn(Optional.of(professor));
+        userService.deleteProfessorFromUser(userId, professorId);
+        user.setProfessor(null);
+        professor.setUser(null);
+        when(userRepository.save(user)).thenReturn(user);
+        when(professorRepository.save(professor)).thenReturn(professor);
+        verify(userRepository, times(1)).findById(userId);
+        verify(userRepository, times(1)).save(user);
+        verify(professorRepository,times(1)).save(professor);
+        verify(professorRepository, never()).findAll();
+        verify(professorRepository, times(1)).findById(professorId);
+    }
+
+    @Test
+    void deleteProfessorFromUser_UserNotFoundTest() throws Exception{
+        Long userId = userTest.getId();
+        Long professorId = professorTest.getId();
+        User user = userTest;
+        Professor professor = professorTest;
+        user.setProfessor(professor);
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+
+        assertThrows(UserNotFoundExeption.class, () -> userService.deleteProfessorFromUser(userId, professorId));
+       verify(userRepository, times(1)).findById(userId);
+        verify(userRepository, never()).save(user);
+        verify(professorRepository,never()).save(professor);
+        verify(professorRepository, never()).findAll();
+        verify(professorRepository, never()).findById(professorId);
+    }
+
+    @Test
+    void deleteProfessorFromUser_ProfessorNotFoundTest() throws Exception{
+        Long userId = userTest.getId();
+        Long professorId = professorTest.getId();
+        User user = userTest;
+        Professor professor = professorTest;
+        user.setProfessor(professor);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(professorRepository.findById(professorId)).thenReturn(Optional.empty());
+        
+        assertThrows(ProfessorNotFoundExeption.class, () -> userService.deleteProfessorFromUser(userId, professorId));
+        verify(userRepository, times(1)).findById(userId);
+        verify(userRepository, never()).save(user);
+        verify(professorRepository,never()).save(professor);
         verify(professorRepository, never()).findAll();
         verify(professorRepository, times(1)).findById(professorId);
     }

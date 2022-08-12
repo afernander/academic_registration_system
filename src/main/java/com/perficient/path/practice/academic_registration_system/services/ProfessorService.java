@@ -13,5 +13,6 @@ public interface ProfessorService {
     void deleteProfessorById(Long id);
     Set<Professor> getProfessorsByArea(String area);
     Set<Professor> getProfessorsBySpecialization(String specialization);
-    //Set<Subject> getSubjectsByProfessorId(Long professorId);
+    Professor addSubjectToProfessor(Long professorId, Long subjectId);
+    Professor deleteSubjectFromProfessor(Long professorId, Long subjectId);
 }

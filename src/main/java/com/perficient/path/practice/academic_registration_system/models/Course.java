@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
@@ -35,6 +36,7 @@ public class Course {
     private Long id;
 
     @NotBlank(message = "Course name is mandatory")
+    @Column(unique = true)
     private String name;
 
     @NotNull(message = "Course description is required")

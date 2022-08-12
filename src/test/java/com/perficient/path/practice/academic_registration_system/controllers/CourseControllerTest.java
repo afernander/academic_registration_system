@@ -230,7 +230,7 @@ public class CourseControllerTest {
         when(courseRepository.findById(1L)).thenReturn(Optional.of(course));
         when(courseService.getCoursesByUserId(userId)).thenReturn(courses);
 
-        mockMvc.perform(get("/courses/"+userId+"/search/byUserid"))
+        mockMvc.perform(get("/courses/"+userId+"/search/byUserId"))
                 .andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$", hasSize(1)))
                 .andExpect(MockMvcResultMatchers.jsonPath("$[0].id").value(1))

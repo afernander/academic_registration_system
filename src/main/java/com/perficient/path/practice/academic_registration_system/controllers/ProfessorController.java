@@ -68,4 +68,16 @@ public class ProfessorController {
         Set<Professor> professorsSet = professorService.getProfessorsBySpecialization(specialization);
         return new ResponseEntity<>(professorsSet, HttpStatus.OK);
     }
+
+    @GetMapping(value = "/{professorId}/add/subject/{subjectId}")
+    public ResponseEntity<Professor> addSubjectToProfessor(@PathVariable Long professorId, @PathVariable Long subjectId) {
+        Professor professor = professorService.addSubjectToProfessor(professorId, subjectId);
+        return new ResponseEntity<>(professor, HttpStatus.OK);
+    }
+
+    @DeleteMapping(value = "/{professorId}/delete/subject/{subjectId}")
+    public ResponseEntity<Professor> deleteSubjectFromProfessor(@PathVariable Long professorId, @PathVariable Long subjectId) {
+        Professor professor = professorService.deleteSubjectFromProfessor(professorId, subjectId);
+        return new ResponseEntity<>(professor, HttpStatus.OK);
+    }
 }
