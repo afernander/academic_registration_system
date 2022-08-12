@@ -7,6 +7,7 @@ import java.util.Set;
 import org.springframework.stereotype.Service;
 
 import com.perficient.path.practice.academic_registration_system.errors.CourseNotFoundExeption;
+import com.perficient.path.practice.academic_registration_system.errors.DuplicatedDataExeption;
 import com.perficient.path.practice.academic_registration_system.errors.ProfessorNotFoundExeption;
 import com.perficient.path.practice.academic_registration_system.errors.UserNotFoundExeption;
 import com.perficient.path.practice.academic_registration_system.models.Course;
@@ -48,7 +49,12 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User createUser(User user) {
-        return userRepository.save(user);
+        try{
+            userRepository.save(user);
+        }catch(Exception e){
+            throw new DuplicatedDataExeption("User with name "+ user.getFirstName()+ " already exists");
+        }
+        return user;
     }
 
     @Override
@@ -121,7 +127,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public User deleteProfessorFromUser(Long userId, Long professorId) {
         User userToUpdate = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundExeption("User with id "+ userId+ " not found to update"));
-        Professor professorToDelete = professorRepository.findById(professorId).orElseThrow(() -> new UserNotFoundExeption("Professor with id "+ professorId+ " not found to delete"));
+        Professor professorToDelete = professorRepository.findById(professorId).orElseThrow(() -> new ProfessorNotFoundExeption("Professor with id "+ professorId+ " not found to delete"));
         userToUpdate.setProfessor(null);
         professorToDelete.setUser(null);
         professorRepository.save(professorToDelete);

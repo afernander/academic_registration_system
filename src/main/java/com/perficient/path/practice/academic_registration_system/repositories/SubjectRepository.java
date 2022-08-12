@@ -14,4 +14,5 @@ public interface SubjectRepository extends JpaRepository<Subject, Long> {
     List<Subject> findByAreaContaining(String area);
     List<Subject> findByCredits(Integer credits);
     List<Subject> findSubjectsByCoursesId(Long courseId);
+    List<Subject> findSubjectsByProfessorId(Long professorId);
 }

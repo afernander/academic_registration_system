@@ -26,8 +26,10 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.perficient.path.practice.academic_registration_system.models.Course;
+import com.perficient.path.practice.academic_registration_system.models.Professor;
 import com.perficient.path.practice.academic_registration_system.models.Subject;
 import com.perficient.path.practice.academic_registration_system.repositories.CourseRepository;
+import com.perficient.path.practice.academic_registration_system.repositories.ProfessorRepository;
 import com.perficient.path.practice.academic_registration_system.repositories.SubjectRepository;
 import com.perficient.path.practice.academic_registration_system.services.SubjectService;
 
@@ -44,11 +46,16 @@ public class SubjectControllerTest {
     @Mock
     CourseRepository courseRepository;
 
+    @Mock
+    ProfessorRepository professorRepository;
+
     SubjectController subjectController;
 
     Subject subjectTest = new Subject();
 
     Course courseTest = new Course();
+
+    Professor professorTest = new Professor();
 
     @BeforeEach
     public void setUp() {
@@ -65,6 +72,9 @@ public class SubjectControllerTest {
 
         courseTest.setId(1L);
         courseTest.setName("Java");
+
+        professorTest.setId(1L);
+        professorTest.setArea("Engineering");
 
         subjectController = new SubjectController(subjectService);
         mockMvc = MockMvcBuilders.standaloneSetup(subjectController).build();
@@ -94,8 +104,8 @@ public class SubjectControllerTest {
         mockMvc.perform(get("/subjects/all"))
                 .andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$", hasSize(2)))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[0].id").value(2))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[1].id").value(1));
+                .andExpect(MockMvcResultMatchers.jsonPath("$[0].id").value(1))
+                .andExpect(MockMvcResultMatchers.jsonPath("$[1].id").value(2));
 
     }
 
@@ -176,10 +186,10 @@ public class SubjectControllerTest {
         mockMvc.perform(get("/subjects/"+name+"/search/name"))
                 .andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$", hasSize(2)))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[1].id").value(1))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[0].id").value(2))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[1].name").value("Calculus"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[0].name").value("Calculus 2"));
+                .andExpect(MockMvcResultMatchers.jsonPath("$[0].id").value(1))
+                .andExpect(MockMvcResultMatchers.jsonPath("$[1].id").value(2))
+                .andExpect(MockMvcResultMatchers.jsonPath("$[0].name").value("Calculus"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$[1].name").value("Calculus 2"));
     }
 
     @Test
@@ -241,5 +251,33 @@ public class SubjectControllerTest {
                 .andExpect(MockMvcResultMatchers.jsonPath("$", hasSize(1)))
                 .andExpect(MockMvcResultMatchers.jsonPath("$[0].id").value(1))
                 .andExpect(MockMvcResultMatchers.jsonPath("$[0].name").value("Calculus"));
+    }
+
+    @Test
+    public void getSubjectsByProfessorIdTest() throws Exception{
+        Long professorId = professorTest.getId();
+        Subject subject = subjectTest;
+        List<Subject> subjects = new ArrayList<>();
+        subject.setProfessor(professorTest);
+        Subject subject2 = new Subject();
+        Professor professor2 = new Professor();
+        professor2.setId(2L);
+        subject2.setId(2L);
+        subject2.setProfessor(professor2);
+        subjects.add(subject2);
+        subjects.add(subject);
+
+        when(subjectRepository.findById(subject.getId())).thenReturn(Optional.of(subject));
+        when(professorRepository.findById(professorId)).thenReturn(Optional.of(professorTest));
+        List<Subject> subjectByProfessorId = subjects.stream().filter(s -> s.getProfessor().getId().equals(professorId)).collect(Collectors.toList());
+        when(subjectService.getSubjectsByProfessorId(professorId)).thenReturn(subjectByProfessorId);
+       
+
+        mockMvc.perform(get("/subjects/"+professorId+"/search/byProfessorId"))
+                .andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$", hasSize(1)))
+                .andExpect(MockMvcResultMatchers.jsonPath("$[0].id").value(1))
+                .andExpect(MockMvcResultMatchers.jsonPath("$[0].name").value("Calculus"));
+
     }
 }

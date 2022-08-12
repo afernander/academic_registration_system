@@ -20,8 +20,13 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import com.perficient.path.practice.academic_registration_system.errors.DuplicatedDataExeption;
+import com.perficient.path.practice.academic_registration_system.errors.ProfessorNotFoundExeption;
+import com.perficient.path.practice.academic_registration_system.errors.SubjectNotFoundExeption;
 import com.perficient.path.practice.academic_registration_system.models.Professor;
+import com.perficient.path.practice.academic_registration_system.models.Subject;
 import com.perficient.path.practice.academic_registration_system.repositories.ProfessorRepository;
+import com.perficient.path.practice.academic_registration_system.repositories.SubjectRepository;
 
 public class ProfessorServiceImplTest{
 
@@ -30,17 +35,26 @@ public class ProfessorServiceImplTest{
     @Mock
     ProfessorRepository professorRepository;
 
+    @Mock 
+    SubjectRepository subjectRepository;
+
     Professor professorTest= new Professor();
+
+    Subject subjectTest= new Subject();
 
     @BeforeEach
     void setUp() throws Exception {
         MockitoAnnotations.openMocks(this);
 
         professorTest.setId(1L);
+        professorTest.setCode("PROF001");
         professorTest.setArea("Computer Science");
         professorTest.setSpecialization("Software Engineering");
 
-        professorService = new ProfessorServiceImpl(professorRepository);
+        subjectTest.setId(1L);
+        subjectTest.setName("Software Engineering"); 
+
+        professorService = new ProfessorServiceImpl(professorRepository, subjectRepository);
     }
 
     @Test
@@ -64,6 +78,7 @@ public class ProfessorServiceImplTest{
     void getAllProfessorsTest(){
         Professor professor = new Professor();
         professor.setId(2L);
+        professor.setCode("PROF002");
         List<Professor> professors = new ArrayList<>();
         professors.add(professorTest);
         professors.add(professor);
@@ -87,10 +102,17 @@ public class ProfessorServiceImplTest{
     }
 
     @Test
+    void createProfessor_DuplicatedDataExeptionTest(){
+        when(professorRepository.save(professorTest)).thenThrow(DuplicatedDataExeption.class);
+        assertThrows(DuplicatedDataExeption.class, () -> professorService.createProfessor(professorTest));
+    }
+
+    @Test
     void updateProfessorTest(){
         Professor professor = professorTest;
         Professor professorUpdated = new Professor();
         professorUpdated.setId(1L);
+        professorUpdated.setCode("PROF001");
         professorUpdated.setArea("Updated area");
         professorUpdated.setSpecialization("Updated specialization");
         when(professorRepository.findById(1L)).thenReturn(Optional.of(professor));
@@ -130,6 +152,7 @@ public class ProfessorServiceImplTest{
         String area = "Science";
         Professor professor = new Professor();
         professor.setId(2L);
+        professor.setCode("PROF002");
         professor.setArea("Science");
 
         List<Professor> professors = new ArrayList<>();
@@ -159,6 +182,7 @@ public class ProfessorServiceImplTest{
         String specialization = "Software";
         Professor professor = new Professor();
         professor.setId(2L);
+        professor.setCode("PROF002");
         professor.setSpecialization("Science");
 
         List<Professor> professors = new ArrayList<>();
@@ -182,4 +206,108 @@ public class ProfessorServiceImplTest{
         when(professorRepository.findBySpecializationContaining(specialization)).thenReturn(new ArrayList<>());
         assertThrows(Exception.class, () -> professorService.getProfessorsBySpecialization(specialization));
     }
+
+    @Test
+    void addSubjectToProfessorTest(){
+        Professor professor = professorTest;
+        Subject subject = subjectTest;
+
+        when(professorRepository.findById(1L)).thenReturn(Optional.of(professor));
+        when(subjectRepository.findById(1L)).thenReturn(Optional.of(subject));
+        professorService.addSubjectToProfessor(1L, 1L);
+        when(professorRepository.save(professor)).thenReturn(professor);
+        when(subjectRepository.save(subject)).thenReturn(subject);
+
+        assertNotNull(professor, "The professor is not null");
+        assertNotNull(subject, "The subject is not null");
+        assertEquals(1, professor.getSubjects().size(), "The size of the set is 1");
+        verify(professorRepository, times(1)).findById(1L);
+        verify(subjectRepository, times(1)).findById(1L);
+        verify(professorRepository, times(1)).save(professor);
+        verify(subjectRepository, times(1)).save(subject);
+    }
+
+    @Test
+    void addSubjectToProfessor_ProfessorNotFoundTest(){
+        Professor professor = professorTest;
+        Subject subject = subjectTest;
+
+        when(professorRepository.findById(1L)).thenReturn(Optional.empty());
+        assertThrows(ProfessorNotFoundExeption.class, () -> professorService.addSubjectToProfessor(1L, 1L));
+        verify(professorRepository, times(1)).findById(1L);
+        verify(subjectRepository, never()).findById(1L);
+        verify(professorRepository, never()).save(professor);
+        verify(subjectRepository, never()).save(subject);
+    }
+
+    @Test
+    void addSubjectToProfessor_SubjectNotFoundTest(){
+        Professor professor = professorTest;
+        Subject subject = subjectTest;
+
+        when(professorRepository.findById(1L)).thenReturn(Optional.of(professor));
+        when(subjectRepository.findById(1L)).thenReturn(Optional.empty());
+        assertThrows(SubjectNotFoundExeption.class, () -> professorService.addSubjectToProfessor(1L, 1L));
+        verify(professorRepository, times(1)).findById(1L);
+        verify(subjectRepository, times(1)).findById(1L);
+        verify(professorRepository, never()).save(professor);
+        verify(subjectRepository, never()).save(subject);
+    }
+
+    @Test
+    void deleteSubjectFromProfessorTest(){
+        Professor professor = professorTest;
+        Subject subject = subjectTest;
+        professor.getSubjects().add(subject);
+        subject.setProfessor(professor);
+
+        when(professorRepository.findById(1L)).thenReturn(Optional.of(professor));
+        when(subjectRepository.findById(1L)).thenReturn(Optional.of(subject));
+        professorService.deleteSubjectFromProfessor(1L, 1L);
+        when(professorRepository.save(professor)).thenReturn(professor);
+        when(subjectRepository.save(subject)).thenReturn(subject);
+
+        assertNotNull(professor, "The professor is not null");
+        assertNotNull(subject, "The subject is not null");
+        assertEquals(0, professor.getSubjects().size(), "The size of the set is 1");
+        verify(professorRepository, times(1)).findById(1L);
+        verify(subjectRepository, times(1)).findById(1L);
+        verify(professorRepository, times(1)).save(professor);
+        verify(subjectRepository, times(1)).save(subject);
+    }
+
+    @Test
+    void deleteSubjectFromProfessor_ProfessorNotFoundTest(){
+        Professor professor = professorTest;
+        Subject subject = subjectTest;
+        professor.getSubjects().add(subject);
+        subject.setProfessor(professor);
+
+        when(professorRepository.findById(1L)).thenReturn(Optional.empty());
+        assertThrows(ProfessorNotFoundExeption.class, () -> professorService.deleteSubjectFromProfessor(1L, 1L));
+
+        verify(professorRepository, times(1)).findById(1L);
+        verify(subjectRepository, never()).findById(1L);
+        verify(professorRepository, never()).save(professor);
+        verify(subjectRepository, never()).save(subject);
+    }
+
+    @Test
+    void deleteSubjectFromProfessor_subjectNotFoundTest(){
+        Professor professor = professorTest;
+        Subject subject = subjectTest;
+        professor.getSubjects().add(subject);
+        subject.setProfessor(professor);
+
+        when(professorRepository.findById(1L)).thenReturn(Optional.of(professor));
+        when(subjectRepository.findById(1L)).thenReturn(Optional.empty());
+        assertThrows(SubjectNotFoundExeption.class, () -> professorService.deleteSubjectFromProfessor(1L, 1L));
+
+        verify(professorRepository, times(1)).findById(1L);
+        verify(subjectRepository, times(1)).findById(1L);
+        verify(professorRepository, never()).save(professor);
+        verify(subjectRepository, never()).save(subject);
+    }
+
+
 }

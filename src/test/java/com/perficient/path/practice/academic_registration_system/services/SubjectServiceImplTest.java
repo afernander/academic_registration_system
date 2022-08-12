@@ -22,10 +22,14 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.perficient.path.practice.academic_registration_system.errors.CourseNotFoundExeption;
+import com.perficient.path.practice.academic_registration_system.errors.DuplicatedDataExeption;
+import com.perficient.path.practice.academic_registration_system.errors.ProfessorNotFoundExeption;
 import com.perficient.path.practice.academic_registration_system.errors.SubjectNotFoundExeption;
 import com.perficient.path.practice.academic_registration_system.models.Course;
+import com.perficient.path.practice.academic_registration_system.models.Professor;
 import com.perficient.path.practice.academic_registration_system.models.Subject;
 import com.perficient.path.practice.academic_registration_system.repositories.CourseRepository;
+import com.perficient.path.practice.academic_registration_system.repositories.ProfessorRepository;
 import com.perficient.path.practice.academic_registration_system.repositories.SubjectRepository;
 
 
@@ -40,9 +44,14 @@ public class SubjectServiceImplTest {
     @Mock 
     CourseRepository courseRepository;
 
+    @Mock
+    ProfessorRepository professorRepository;
+
     Subject subjectTest = new Subject();
 
     Course courseTest = new Course();
+
+    Professor professorTest = new Professor();
 
     @BeforeEach
     public void setup() {
@@ -60,7 +69,10 @@ public class SubjectServiceImplTest {
         courseTest.setId(1L);
         courseTest.setName("Java");
 
-        subjectService = new SubjectServiceImpl(subjectRepository, courseRepository);
+        professorTest.setId(1L);
+        professorTest.setArea("Engineering");
+
+        subjectService = new SubjectServiceImpl(subjectRepository, courseRepository, professorRepository);
     }
 
     @Test
@@ -112,6 +124,15 @@ public class SubjectServiceImplTest {
         assertNotNull(subjectReturned, "The returned subject should not be null");
         assertEquals(subject, subjectReturned, "The returned subject should be the same as the mocked one");
         verify(subjectRepository, times(1)).save(subject);
+    }
+
+    @Test
+    public void createSubject_DuplicatedDataExeptionTest(){
+        Subject subject = subjectTest;
+
+        when(subjectRepository.save(subject)).thenThrow(DuplicatedDataExeption.class);
+
+        assertThrows(DuplicatedDataExeption.class, () -> subjectService.createSubject(subject));
     }
 
     @Test
@@ -308,5 +329,64 @@ public class SubjectServiceImplTest {
         when(subjectRepository.findSubjectsByCoursesId(courseId)).thenReturn(subjects);
 
         assertThrows(SubjectNotFoundExeption.class, () -> subjectService.getSubjectsByCourseId(courseId));
+    }
+
+    @Test
+    void getSubjectsByProfessorIdTest() throws Exception{
+        Long professorId = professorTest.getId();
+        Subject subject = subjectTest;
+        subject.setProfessor(professorTest);
+        List<Subject> subjects = new ArrayList<>();
+        subjects.add(subject);
+
+        when(professorRepository.existsById(professorId)).thenReturn(true);
+        when(subjectRepository.findSubjectsByProfessorId(professorId)).thenReturn(subjects);
+
+        List<Subject> subjectsReturned = subjectService.getSubjectsByProfessorId(professorId);
+
+        assertNotNull(subjectsReturned, "The returned subjects should not be null");
+        assertEquals(1, subjectsReturned.size(), "The returned subjects should be the same as the mocked ones");
+        assertEquals(subjects, subjectsReturned, "The returned subjects should be the same as the mocked ones");
+        verify(professorRepository, times(1)).existsById(professorId);
+        verify(subjectRepository, times(1)).findSubjectsByProfessorId(professorId);
+        verify(subjectRepository, never()).findAll();
+        verify(professorRepository, never()).findAll();
+    }
+
+    @Test
+    void getSubjectsByProfessorId_ProfessorNotFoundTest() throws Exception{
+        Long professorId = professorTest.getId();
+        Subject subject = subjectTest;
+        subject.setProfessor(professorTest);
+        List<Subject> subjects = new ArrayList<>();
+        subjects.add(subject);
+
+        when(professorRepository.existsById(professorId)).thenReturn(false);
+        when(subjectRepository.findSubjectsByProfessorId(professorId)).thenReturn(subjects);
+        
+        assertThrows(ProfessorNotFoundExeption.class, () -> subjectService.getSubjectsByProfessorId(professorId));
+
+        verify(professorRepository, times(1)).existsById(professorId);
+        verify(subjectRepository, never()).findSubjectsByProfessorId(professorId);
+        verify(subjectRepository, never()).findAll();
+        verify(professorRepository, never()).findAll();
+    }
+
+    @Test
+    void getSubjectsByProfessorId_SubjectNotFoundTest() throws Exception{
+        Long professorId = professorTest.getId();
+        Subject subject = subjectTest;
+        subject.setProfessor(professorTest);
+        List<Subject> subjects = new ArrayList<>();
+
+        when(professorRepository.existsById(professorId)).thenReturn(true);
+        when(subjectRepository.findSubjectsByProfessorId(professorId)).thenReturn(subjects);
+        
+        assertThrows(SubjectNotFoundExeption.class, () -> subjectService.getSubjectsByProfessorId(professorId));
+
+        verify(professorRepository, times(1)).existsById(professorId);
+        verify(subjectRepository, times(1)).findSubjectsByProfessorId(professorId);
+        verify(subjectRepository, never()).findAll();
+        verify(professorRepository, never()).findAll();
     }
 }
