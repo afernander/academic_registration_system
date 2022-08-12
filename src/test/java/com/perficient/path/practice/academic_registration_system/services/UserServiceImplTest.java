@@ -20,10 +20,13 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import com.perficient.path.practice.academic_registration_system.repositories.CourseRepository;
+import com.perficient.path.practice.academic_registration_system.repositories.ProfessorRepository;
 import com.perficient.path.practice.academic_registration_system.repositories.UserRepository;
 import com.perficient.path.practice.academic_registration_system.errors.CourseNotFoundExeption;
+import com.perficient.path.practice.academic_registration_system.errors.ProfessorNotFoundExeption;
 import com.perficient.path.practice.academic_registration_system.errors.UserNotFoundExeption;
 import com.perficient.path.practice.academic_registration_system.models.Course;
+import com.perficient.path.practice.academic_registration_system.models.Professor;
 import com.perficient.path.practice.academic_registration_system.models.User;
 
 public class UserServiceImplTest {
@@ -36,9 +39,14 @@ public class UserServiceImplTest {
     @Mock
     CourseRepository courseRepository;
 
+    @Mock
+    ProfessorRepository professorRepository;
+
     User userTest = new User();
 
     Course courseTest = new Course();
+
+    Professor professorTest = new Professor();
 
     @BeforeEach
     public void setUp() throws Exception {
@@ -56,7 +64,11 @@ public class UserServiceImplTest {
         courseTest.setName("Java");
         courseTest.setDescription("Java is a programming language");
 
-        userService = new UserServiceImpl(userRepository, courseRepository);
+        professorTest.setId(1L);
+        professorTest.setArea("Computer Science");
+        professorTest.setSpecialization("Data Science");
+
+        userService = new UserServiceImpl(userRepository, courseRepository, professorRepository);
     }
 
 
@@ -334,5 +346,52 @@ public class UserServiceImplTest {
         when(userRepository.findUsersByCoursesId(courseId)).thenReturn(users);
 
         assertThrows(UserNotFoundExeption.class, () -> userService.getUsersByCourseId(courseId));
+    }
+
+    @Test
+    void addProfessorToUserTest() throws Exception{
+        Long userId = userTest.getId();
+        Long professorId = professorTest.getId();
+        User user = userTest;
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(professorRepository.findById(professorId)).thenReturn(Optional.of(professorTest));
+        userService.addProfessorToUser(userId, professorId);
+        user.setProfessor(professorTest);
+        when(userRepository.save(user)).thenReturn(user);
+
+        verify(userRepository, times(1)).findById(userId);
+        verify(userRepository, times(1)).save(user);
+        verify(professorRepository, never()).findAll();
+        verify(professorRepository, times(1)).findById(professorId);
+    }
+
+    @Test
+    void addProfessorToUser_UserNotFoundTest() throws Exception{
+        Long userId = userTest.getId();
+        Long professorId = professorTest.getId();
+        User user = userTest;
+
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+        assertThrows(UserNotFoundExeption.class, () -> userService.addProfessorToUser(userId, professorId));
+        verify(userRepository, times(1)).findById(userId);
+        verify(userRepository, never()).save(user);
+        verify(professorRepository, never()).findAll();
+        verify(professorRepository, never()).findById(professorId);
+    }
+
+    @Test
+    void addProfessorToUser_ProfessorNotFoundTest() throws Exception{
+        Long userId = userTest.getId();
+        Long professorId = professorTest.getId();
+        User user = userTest;
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(professorRepository.findById(professorId)).thenReturn(Optional.empty());
+        assertThrows(ProfessorNotFoundExeption.class, () -> userService.addProfessorToUser(userId, professorId));
+        verify(userRepository, times(1)).findById(userId);
+        verify(userRepository, never()).save(user);
+        verify(professorRepository, never()).findAll();
+        verify(professorRepository, times(1)).findById(professorId);
     }
 }

@@ -84,4 +84,16 @@ public class UserController {
         User updatedUser = userService.deleteCourseFromUser(userId, courseId);
         return new ResponseEntity<>(updatedUser, HttpStatus.OK);
     }
+
+    @GetMapping(value="/{userId}/add/professor/{professorId}")
+    public ResponseEntity<User> addProfessorToUser(@PathVariable Long userId, @PathVariable Long professorId) {
+        User updatedUser = userService.addProfessorToUser(userId, professorId);
+        return new ResponseEntity<>(updatedUser, HttpStatus.OK);
+    }
+
+    @DeleteMapping(value="/{userId}/delete/professor/{professorId}")
+    public ResponseEntity<User> deleteProfessorFromUser(@PathVariable Long userId, @PathVariable Long professorId) {
+        User updatedUser = userService.deleteProfessorFromUser(userId, professorId);
+        return new ResponseEntity<>(updatedUser, HttpStatus.OK);
+    }
 }

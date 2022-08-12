@@ -12,6 +12,8 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import lombok.Data;
 
 @Entity
@@ -29,9 +31,11 @@ public class Professor {
     private String specialization;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "professor")
+    @JsonIgnore
     private Set<Subject> subjects;
 
     @OneToOne
+    @JsonIgnore
     private User user;
 
 }
