@@ -16,4 +16,6 @@ public interface UserService {
     Set<User> getUsersByFirstName(String name);
     List<User> getUsersByCourseId(Long courseId);
     User deleteCourseFromUser(Long userId, Long courseId);
+    User addProfessorToUser(Long userId, Long professorId);
+    User deleteProfessorFromUser(Long userId, Long professorId);
 }

@@ -7,10 +7,13 @@ import java.util.Set;
 import org.springframework.stereotype.Service;
 
 import com.perficient.path.practice.academic_registration_system.errors.CourseNotFoundExeption;
+import com.perficient.path.practice.academic_registration_system.errors.ProfessorNotFoundExeption;
 import com.perficient.path.practice.academic_registration_system.errors.UserNotFoundExeption;
 import com.perficient.path.practice.academic_registration_system.models.Course;
+import com.perficient.path.practice.academic_registration_system.models.Professor;
 import com.perficient.path.practice.academic_registration_system.models.User;
 import com.perficient.path.practice.academic_registration_system.repositories.CourseRepository;
+import com.perficient.path.practice.academic_registration_system.repositories.ProfessorRepository;
 import com.perficient.path.practice.academic_registration_system.repositories.UserRepository;
 
 
@@ -21,10 +24,13 @@ public class UserServiceImpl implements UserService {
 
     private final CourseRepository courseRepository;
 
+    private final ProfessorRepository professorRepository;
 
-    public UserServiceImpl(UserRepository userRepository, CourseRepository courseRepository) {
+
+    public UserServiceImpl(UserRepository userRepository, CourseRepository courseRepository, ProfessorRepository professorRepository) {
         this.userRepository = userRepository;
         this.courseRepository = courseRepository;
+        this.professorRepository = professorRepository;
     }
     
     @Override
@@ -99,6 +105,26 @@ public class UserServiceImpl implements UserService {
         User userToUpdate = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundExeption("User with id "+ userId+ " not found to update"));
         Course courseToDelete = courseRepository.findById(courseId).orElseThrow(() -> new CourseNotFoundExeption("Course with id "+ courseId+ " not found to delete"));
         userToUpdate.getCourses().remove(courseToDelete);
+        return userRepository.save(userToUpdate);
+    }
+
+    @Override
+    public User addProfessorToUser(Long userId, Long professorId) {
+        User userToUpdate = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundExeption("User with id "+ userId+ " not found to update"));
+        Professor professorToAdd = professorRepository.findById(professorId).orElseThrow(() -> new ProfessorNotFoundExeption("Professor with id "+ professorId+ " not found to add"));
+        userToUpdate.setProfessor(professorToAdd);
+        professorToAdd.setUser(userToUpdate);
+        professorRepository.save(professorToAdd);
+        return userRepository.save(userToUpdate);
+    }
+
+    @Override
+    public User deleteProfessorFromUser(Long userId, Long professorId) {
+        User userToUpdate = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundExeption("User with id "+ userId+ " not found to update"));
+        Professor professorToDelete = professorRepository.findById(professorId).orElseThrow(() -> new UserNotFoundExeption("Professor with id "+ professorId+ " not found to delete"));
+        userToUpdate.setProfessor(null);
+        professorToDelete.setUser(null);
+        professorRepository.save(professorToDelete);
         return userRepository.save(userToUpdate);
     }
 }
