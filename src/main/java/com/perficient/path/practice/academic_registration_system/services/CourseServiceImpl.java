@@ -1,9 +1,10 @@
 package com.perficient.path.practice.academic_registration_system.services;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.perficient.path.practice.academic_registration_system.errors.CourseNotFoundExeption;
@@ -39,11 +40,13 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
-    public Set<Course> getAllCourses() {
-        Set<Course> coursesSet = new HashSet<>();
-        courseRepository.findAll().iterator().forEachRemaining(coursesSet::add);
-
-        return coursesSet;
+    public Page<Course> getAllCourses(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Course> coursesPage = courseRepository.findAll(pageable);
+        if(coursesPage.isEmpty()){
+            throw new CourseNotFoundExeption("No courses found");
+        }
+        return coursesPage;
     }
 
     @Override
@@ -75,13 +78,14 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
-    public Set<Course> getCoursesByName(String name){
-        Set<Course> coursesSet = new HashSet<>();
-        courseRepository.findByNameContaining(name).iterator().forEachRemaining(coursesSet::add);
-        if(coursesSet.isEmpty()){
+    public Page<Course> getCoursesByName(int page, int size,String name){
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Course> coursesPage = courseRepository.findByNameContaining(pageable,name);
+        
+        if(coursesPage.isEmpty()){
             throw new CourseNotFoundExeption("Course with  "+ name+ " in name not found");
         }
-        return coursesSet;
+        return coursesPage;
     }
 
     @Override

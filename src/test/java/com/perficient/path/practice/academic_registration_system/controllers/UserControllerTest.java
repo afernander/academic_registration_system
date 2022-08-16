@@ -6,7 +6,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.hamcrest.Matchers.hasSize;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -22,6 +21,11 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
 import org.mockito.MockitoAnnotations;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -58,6 +62,10 @@ public class UserControllerTest {
     Course courseTest = new Course();
 
     Professor professorTest = new Professor();
+
+    int page = 0;
+    int size = 3;
+    Pageable pageable = PageRequest.of(page, size);
 
     @BeforeEach
     void setUp() throws Exception {
@@ -99,7 +107,7 @@ public class UserControllerTest {
     @Test
     void getAllUsersTest() throws Exception {
 
-        Set<User> users = new HashSet<>();
+        List<User> users = new ArrayList<>();
         
         User user = new User();
         user.setId(1L);
@@ -108,15 +116,15 @@ public class UserControllerTest {
         User user2 = new User();
         user2.setId(2L);
         users.add(user2);
-       
+        Page<User> usersPage = new PageImpl<>(users);
         
-        when(userService.getAllUsers()).thenReturn(users);
+        when(userService.getAllUsers(page, size)).thenReturn(usersPage);
+        
 
         mockMvc.perform(get("/users/all"))
                 .andExpect(status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$[*]",hasSize(2)))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[0].id").value(1))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[1].id").value(2));  
+                .andExpect(MockMvcResultMatchers.jsonPath("$.content.[0].id").value(1))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.content.[1].id").value(2));  
     }
 
     @Test
@@ -213,14 +221,15 @@ public class UserControllerTest {
         user.setFirstName("PAOLO");
         users.add(user);
 
-        Set<User> usersByFirstName = users.stream().filter(u -> u.getFirstName().toLowerCase().contains(firstName.toLowerCase())).collect(Collectors.toSet());
-        when(userService.getUsersByFirstName(firstName)).thenReturn(usersByFirstName);
+        List<User> usersByFirstName = users.stream().filter(u -> u.getFirstName().toLowerCase().contains(firstName.toLowerCase())).collect(Collectors.toList());
+        Page<User> usersPage = new PageImpl<>(usersByFirstName);
+        
+        when(userService.getUsersByFirstName(page,size,firstName)).thenReturn(usersPage);
         
         mockMvc.perform(get("/users/"+firstName+"/search/firstname"))
                 .andExpect(status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$",hasSize(1)))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[0].id").value(1))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[0].firstName").value(firstName));
+                .andExpect(MockMvcResultMatchers.jsonPath("$.content.[0].id").value(1))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.content.[0].firstName").value(firstName));
     }
 
    @Test

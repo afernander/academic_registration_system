@@ -2,10 +2,8 @@ package com.perficient.path.practice.academic_registration_system.controllers;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.mockito.Mockito.when;
@@ -15,6 +13,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.hamcrest.Matchers.hasSize;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -58,6 +60,11 @@ public class CourseControllerTest {
 
     Subject subjectTest = new Subject();
 
+    
+    int page = 0;
+    int size = 3;
+    Pageable pageable = PageRequest.of(page, size);
+
     @BeforeEach
     void setUp() throws Exception {
         MockitoAnnotations.openMocks(this);
@@ -94,7 +101,7 @@ public class CourseControllerTest {
     @Test
     void getAllCoursesTest() throws Exception {
 
-        Set<Course> courses = new HashSet<>();
+        List<Course> courses = new ArrayList<>();
         Course course = new Course();
         course.setId(1L);
         course.setName("Java");
@@ -105,15 +112,14 @@ public class CourseControllerTest {
         course2.setName("Python");
         courses.add(course2);
         
-
-        when(courseService.getAllCourses()).thenReturn(courses);
+        Page<Course> coursePage = new PageImpl<>(courses);
+        when(courseService.getAllCourses(page,size)).thenReturn(coursePage);
         
         mockMvc.perform(get("/courses/all"))
                .andExpect(status().isOk())
-               .andExpect(MockMvcResultMatchers.jsonPath("$", hasSize(2)))
-               .andExpect(MockMvcResultMatchers.jsonPath("$[0].id").value(2))
-               .andExpect(MockMvcResultMatchers.jsonPath("$[0].name").value("Python"))
-               .andExpect(MockMvcResultMatchers.jsonPath("$[1].id").value(1));
+               .andExpect(MockMvcResultMatchers.jsonPath("$.content.[1].id").value(2))
+               .andExpect(MockMvcResultMatchers.jsonPath("$.content.[1].name").value("Python"))
+               .andExpect(MockMvcResultMatchers.jsonPath("$.content.[0].id").value(1));
     }
 
     @Test
@@ -181,7 +187,7 @@ public class CourseControllerTest {
     @Test
     void getCoursesByNameTest() throws Exception {
         String courseName = "Java";
-        Set<Course> courses = new HashSet<>();
+        List<Course> courses = new ArrayList<>();
         Course course = new Course();
         course.setId(1L);
         course.setName(courseName);
@@ -192,17 +198,16 @@ public class CourseControllerTest {
         course2.setName("java Script");
         courses.add(course2);
         
-        Set<Course> coursesByName = courses.stream().filter(c -> c.getName().toLowerCase().contains(courseName.toLowerCase())).collect(Collectors.toSet());
-    
-        when(courseService.getCoursesByName(courseName)).thenReturn(coursesByName);
+        List<Course> coursesByName = courses.stream().filter(c -> c.getName().toLowerCase().contains(courseName.toLowerCase())).collect(Collectors.toList());
+        Page<Course> coursePage = new PageImpl<>(coursesByName);
+        when(courseService.getCoursesByName(page,size,courseName)).thenReturn(coursePage);
            
         mockMvc.perform(get("/courses/"+courseName+"/search/name"))
                .andExpect(status().isOk())
-               .andExpect(MockMvcResultMatchers.jsonPath("$", hasSize(2)))
-               .andExpect(MockMvcResultMatchers.jsonPath("$[0].id").value(2))
-               .andExpect(MockMvcResultMatchers.jsonPath("$[0].name").value("java Script"))
-               .andExpect(MockMvcResultMatchers.jsonPath("$[1].id").value(1))
-               .andExpect(MockMvcResultMatchers.jsonPath("$[1].name").value("Java"));
+               .andExpect(MockMvcResultMatchers.jsonPath("$.content.[1].id").value(2))
+               .andExpect(MockMvcResultMatchers.jsonPath("$.content.[1].name").value("java Script"))
+               .andExpect(MockMvcResultMatchers.jsonPath("$.content.[0].id").value(1))
+               .andExpect(MockMvcResultMatchers.jsonPath("$.content.[0].name").value("Java"));
                 
     }
 

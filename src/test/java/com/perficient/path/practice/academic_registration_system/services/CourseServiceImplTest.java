@@ -4,7 +4,6 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -19,6 +18,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import com.perficient.path.practice.academic_registration_system.errors.CourseNotFoundExeption;
 import com.perficient.path.practice.academic_registration_system.errors.DuplicatedDataExeption;
@@ -52,6 +55,11 @@ public class CourseServiceImplTest {
     User userTest = new User();
 
     Subject subjectTest = new Subject();
+
+    
+    int page = 0;
+    int size = 3;
+    Pageable pageable = PageRequest.of(page, size);
 
     @BeforeEach
     void setUp() throws Exception {
@@ -100,12 +108,21 @@ public class CourseServiceImplTest {
         course.setId(1L);
         List<Course> courses = new ArrayList<>();
         courses.add(course);
-        when(courseRepository.findAll()).thenReturn(courses);
+        Page<Course> coursesPage = new PageImpl<>(courses);
+        when(courseRepository.findAll(pageable)).thenReturn(coursesPage);   
 
-        Set<Course> allCourses = courseService.getAllCourses();
+        Page<Course> allCourses = courseService.getAllCourses(page,size);
 
-        assertEquals(1, allCourses.size());
-        verify(courseRepository, times(1)).findAll();
+        assertNotNull(allCourses, "The courses are not null");
+        verify(courseRepository, times(1)).findAll(pageable);
+        verify(courseRepository, never()).findById(anyLong());
+    }
+
+    @Test
+    void getAllCourses_NotFoundTest(){
+        when(courseRepository.findAll(pageable)).thenReturn(new PageImpl<>(new ArrayList<>()));  
+        assertThrows(Exception.class, () -> courseService.getAllCourses(page,size));
+        verify(courseRepository, times(1)).findAll(pageable);
         verify(courseRepository, never()).findById(anyLong());
     }
 
@@ -188,13 +205,13 @@ public class CourseServiceImplTest {
         courses.add(course);
         courses.add(course2);
         List<Course> coursesByName = courses.stream().filter(c -> c.getName().toLowerCase().contains(courseName.toLowerCase())).collect(Collectors.toList());
+        Page<Course> coursesPage = new PageImpl<>(coursesByName);
+        when(courseRepository.findByNameContaining(pageable,courseName)).thenReturn(coursesPage);
+    
+        Page<Course> coursesReturned = courseService.getCoursesByName(page,size,courseName);
 
-        when(courseRepository.findByNameContaining(courseName)).thenReturn(coursesByName);
-
-        Set<Course> coursesReturned = courseService.getCoursesByName(courseName);
-
-        assertEquals(2, coursesReturned.size());
-        verify(courseRepository, times(1)).findByNameContaining(courseName);
+        assertNotNull(coursesReturned, "The courses are not null");
+        verify(courseRepository, times(1)).findByNameContaining(pageable,courseName);
         verify(courseRepository, never()).findById(anyLong());
         verify(courseRepository, never()).findAll();
     }
@@ -202,8 +219,8 @@ public class CourseServiceImplTest {
     @Test
     void getCoursesByNameNotFoundTest(){
         String courseName = "Java";
-        when(courseRepository.findByNameContaining(courseName)).thenReturn(new ArrayList<>());
-        assertThrows(Exception.class, () -> courseService.getCoursesByName(courseName));
+        when(courseRepository.findByNameContaining(pageable,courseName)).thenReturn(new PageImpl<>(new ArrayList<>()));
+        assertThrows(Exception.class, () -> courseService.getCoursesByName(page,size,courseName));
     }
 
     @Test

@@ -11,7 +11,6 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -20,6 +19,11 @@ import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import com.perficient.path.practice.academic_registration_system.errors.CourseNotFoundExeption;
 import com.perficient.path.practice.academic_registration_system.errors.DuplicatedDataExeption;
@@ -52,6 +56,10 @@ public class SubjectServiceImplTest {
     Course courseTest = new Course();
 
     Professor professorTest = new Professor();
+
+    int page = 0;
+    int size = 3;
+    Pageable pageable = PageRequest.of(page, size);
 
     @BeforeEach
     public void setup() {
@@ -102,14 +110,22 @@ public class SubjectServiceImplTest {
     public void getAllSubjectsTest(){
         List<Subject> subjects = new ArrayList<>();
         subjects.add(subjectTest);
+        Page<Subject> pageSubjects = new PageImpl<>(subjects);
+        when(subjectRepository.findAll(pageable)).thenReturn(pageSubjects);
 
-        when(subjectRepository.findAll()).thenReturn(subjects);
-
-        Set<Subject> subjectsReturned = subjectService.getAllSubjects();
+        Page<Subject> subjectsReturned = subjectService.getAllSubjects(page,size);
 
         assertNotNull(subjectsReturned, "The returned subjects should not be null");
-        assertEquals(subjects.size(), subjectsReturned.size(), "The returned subjects should be the same as the mocked ones");
-        verify(subjectRepository, times(1)).findAll();
+        verify(subjectRepository, times(1)).findAll(pageable);
+        verify(subjectRepository, never()).findById(anyLong());
+    }
+
+    @Test
+    public void getAllSubjects_notFoundTest(){
+        when(subjectRepository.findAll(pageable)).thenReturn(new PageImpl<>(new ArrayList<>()));
+
+        assertThrows(Exception.class, () -> subjectService.getAllSubjects(page,size));
+        verify(subjectRepository, times(1)).findAll(pageable);
         verify(subjectRepository, never()).findById(anyLong());
     }
 
@@ -160,7 +176,7 @@ public class SubjectServiceImplTest {
     }
 
     @Test
-    public void updateSubjectTestNotFound(){
+    public void updateSubject_NotFoundTest(){
         Long id= subjectTest.getId();
 
         when(subjectRepository.findById(id)).thenReturn(Optional.empty());
@@ -170,7 +186,7 @@ public class SubjectServiceImplTest {
     }
 
     @Test
-    public void deleteSubjectById(){
+    public void deleteSubjectByIdTest(){
         Long id= subjectTest.getId();
     
         when(subjectRepository.findById(id)).thenReturn(Optional.of(subjectTest));
@@ -182,7 +198,7 @@ public class SubjectServiceImplTest {
     }
 
     @Test
-    public void deleteSubjectByIdNotFound(){
+    public void deleteSubjectByIdNotFoundTest(){
         Long id= subjectTest.getId();
     
         when(subjectRepository.findById(id)).thenReturn(Optional.empty());
@@ -202,23 +218,22 @@ public class SubjectServiceImplTest {
         List<Subject> subjects = new ArrayList<>();
         subjects.add(subjectTest);
         subjects.add(subject2);
+        Page<Subject> subjectPage = new PageImpl<>(subjects);
+        when(subjectRepository.findByNameContaining(pageable,name)).thenReturn(subjectPage);
         
-        when(subjectRepository.findByNameContaining(name)).thenReturn(subjects);
-        
-        Set<Subject> subjectsReturned = subjectService.getSubjectsByName(name);
+        Page<Subject> subjectsReturned = subjectService.getSubjectsByName(page,size,name);
         
         assertNotNull(subjectsReturned, "The returned subjects should not be null");
-        assertEquals(2, subjectsReturned.size(), "The returned subjects should be the same as the mocked ones");
-        verify(subjectRepository, times(1)).findByNameContaining(name);
+        verify(subjectRepository, times(1)).findByNameContaining(pageable,name);
         verify(subjectRepository, never()).findById(anyLong());
     }
 
     @Test
     void getSubjectsByNameNotFoundTest(){
         String name = "Calculus";
-        when(subjectRepository.findByNameContaining(name)).thenReturn(new ArrayList<>());
-        assertThrows(Exception.class, () -> subjectService.getSubjectsByName(name));
-        verify(subjectRepository, times(1)).findByNameContaining(name);
+        when(subjectRepository.findByNameContaining(pageable,name)).thenReturn(new PageImpl<>(new ArrayList<>()));
+        assertThrows(Exception.class, () -> subjectService.getSubjectsByName(page,size,name));
+        verify(subjectRepository, times(1)).findByNameContaining(pageable,name);
         verify(subjectRepository, never()).findById(anyLong());
     }
 
@@ -233,22 +248,22 @@ public class SubjectServiceImplTest {
         subjects.add(subjectTest);
         subjects.add(subject2);
         List<Subject> subjectsByArea = subjects.stream().filter(s -> s.getArea().toLowerCase().contains(area.toLowerCase())).collect(Collectors.toList());
-        when(subjectRepository.findByAreaContaining(area)).thenReturn(subjectsByArea);
+        Page<Subject> subjectPage = new PageImpl<>(subjectsByArea);
+        when(subjectRepository.findByAreaContaining(pageable,area)).thenReturn(subjectPage);
         
-        Set<Subject> subjectsReturned = subjectService.getSubjectsByArea(area);
+        Page<Subject> subjectsReturned = subjectService.getSubjectsByArea(page,size,area);
         
         assertNotNull(subjectsReturned, "The returned subjects should not be null");
-        assertEquals(1, subjectsReturned.size(), "The returned subjects should be the same as the mocked ones");
-        verify(subjectRepository, times(1)).findByAreaContaining(area);
+        verify(subjectRepository, times(1)).findByAreaContaining(pageable,area);
         verify(subjectRepository, never()).findById(anyLong());
     }
 
     @Test
     void getSubjectsByAreaNotFoundTest(){
         String area = "Engegnering";
-        when(subjectRepository.findByAreaContaining(area)).thenReturn(new ArrayList<>());
-        assertThrows(Exception.class, () -> subjectService.getSubjectsByArea(area));
-        verify(subjectRepository, times(1)).findByAreaContaining(area);
+        when(subjectRepository.findByAreaContaining(pageable,area)).thenReturn(new PageImpl<>(new ArrayList<>()));
+        assertThrows(Exception.class, () -> subjectService.getSubjectsByArea(page,size,area));
+        verify(subjectRepository, times(1)).findByAreaContaining(pageable,area);
         verify(subjectRepository, never()).findById(anyLong());
     }
 
@@ -263,22 +278,22 @@ public class SubjectServiceImplTest {
         subjects.add(subjectTest);
         subjects.add(subject2);
         List<Subject> subjectsByCredits = subjects.stream().filter(s -> s.getCredits().equals(credits)).collect(Collectors.toList());
-        when(subjectRepository.findByCredits(credits)).thenReturn(subjectsByCredits);
+        Page<Subject> subjectPage = new PageImpl<>(subjectsByCredits);
+        when(subjectRepository.findByCredits(pageable,credits)).thenReturn(subjectPage);
         
-        Set<Subject> subjectsReturned = subjectService.getSubjectsByCredits(credits);
+        Page<Subject> subjectsReturned = subjectService.getSubjectsByCredits(page,size,credits);
         
         assertNotNull(subjectsReturned, "The returned subjects should not be null");
-        assertEquals(1, subjectsReturned.size(), "The returned subjects should be the same as the mocked ones");
-        verify(subjectRepository, times(1)).findByCredits(credits);
+        verify(subjectRepository, times(1)).findByCredits(pageable,credits);
         verify(subjectRepository, never()).findById(anyLong());
     }
 
     @Test
     void getSubjectsByCreditsNotFoundTest(){
         Integer credits = subjectTest.getCredits();
-        when(subjectRepository.findByCredits(credits)).thenReturn(new ArrayList<>());
-        assertThrows(Exception.class, () -> subjectService.getSubjectsByCredits(credits));
-        verify(subjectRepository, times(1)).findByCredits(credits);
+        when(subjectRepository.findByCredits(pageable,credits)).thenReturn(new PageImpl<>(new ArrayList<>()));
+        assertThrows(Exception.class, () -> subjectService.getSubjectsByCredits(page,size,credits));
+        verify(subjectRepository, times(1)).findByCredits(pageable,credits);
         verify(subjectRepository, never()).findById(anyLong());
     }
 

@@ -1,9 +1,10 @@
 package com.perficient.path.practice.academic_registration_system.services;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.perficient.path.practice.academic_registration_system.errors.CourseNotFoundExeption;
@@ -36,11 +37,13 @@ public class SubjectServiceImpl implements SubjectService {
     }
 
     @Override
-    public Set<Subject> getAllSubjects() {
-        Set<Subject> subjectsSet = new HashSet<>();
-
-        subjectRepository.findAll().iterator().forEachRemaining(subjectsSet::add);
-        return subjectsSet;
+    public Page<Subject> getAllSubjects(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Subject> subjectPage = subjectRepository.findAll(pageable);
+        if(subjectPage.isEmpty()){
+            throw new SubjectNotFoundExeption("No subjects found");
+        }
+        return subjectPage;
     }
 
     @Override
@@ -75,33 +78,34 @@ public class SubjectServiceImpl implements SubjectService {
     }
     
     @Override
-    public Set<Subject> getSubjectsByName(String name){
-        Set<Subject> subjectsSet = new HashSet<>();
-        subjectRepository.findByNameContaining(name).iterator().forEachRemaining(subjectsSet::add);
-        if(subjectsSet.isEmpty()){
+    public Page<Subject> getSubjectsByName(int page, int size, String name){
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Subject> subjects = subjectRepository.findByNameContaining(pageable, name);
+   
+        if(subjects.isEmpty()){
             throw new SubjectNotFoundExeption("Subjects with name "+name+" not found");
         }
-        return subjectsSet;
+        return subjects;
     }
 
     @Override
-    public Set<Subject> getSubjectsByArea(String area){
-        Set<Subject> subjectsSet = new HashSet<>();
-        subjectRepository.findByAreaContaining(area).iterator().forEachRemaining(subjectsSet::add);
-        if(subjectsSet.isEmpty()){
+    public Page<Subject> getSubjectsByArea(int page, int size,String area){
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Subject> subjects =subjectRepository.findByAreaContaining(pageable,area);
+        if(subjects.isEmpty()){
             throw new SubjectNotFoundExeption("Subjects with area "+area+" not found");
         }
-        return subjectsSet;
+        return subjects;
     }
 
     @Override
-    public Set<Subject> getSubjectsByCredits(Integer credits){
-        Set<Subject> subjectsSet = new HashSet<>();
-        subjectRepository.findByCredits(credits).iterator().forEachRemaining(subjectsSet::add);
-        if(subjectsSet.isEmpty()){
+    public Page<Subject> getSubjectsByCredits(int page, int size,Integer credits){
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Subject> subjects =subjectRepository.findByCredits(pageable,credits);
+        if(subjects.isEmpty()){
             throw new SubjectNotFoundExeption("Subjects with credits "+credits+" not found");
         }
-        return subjectsSet;
+        return subjects;
     }
 
     @Override

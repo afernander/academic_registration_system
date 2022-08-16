@@ -7,10 +7,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.hamcrest.Matchers.hasSize;
@@ -19,6 +17,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
@@ -57,6 +59,10 @@ public class SubjectControllerTest {
 
     Professor professorTest = new Professor();
 
+    int page = 0;
+    int size = 3;
+    Pageable pageable = PageRequest.of(page, size);
+
     @BeforeEach
     public void setUp() {
        MockitoAnnotations.openMocks(this);
@@ -91,7 +97,7 @@ public class SubjectControllerTest {
 
     @Test
     public void getAllSubjectsTest() throws Exception {
-        Set<Subject> subjects = new HashSet<>();
+        List<Subject> subjects = new ArrayList<>();
 
         subjects.add(subjectTest);
         Subject subject = new Subject();
@@ -99,13 +105,13 @@ public class SubjectControllerTest {
         subject.setName("Calculus 2");
         subjects.add(subject);
 
-        when(subjectService.getAllSubjects()).thenReturn(subjects);
+        Page<Subject> subjectPage = new PageImpl<>(subjects);
+        when(subjectService.getAllSubjects(page,size)).thenReturn(subjectPage);
 
         mockMvc.perform(get("/subjects/all"))
                 .andExpect(status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$", hasSize(2)))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[0].id").value(1))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[1].id").value(2));
+                .andExpect(MockMvcResultMatchers.jsonPath("$.content.[0].id").value(1))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.content.[1].id").value(2));
 
     }
 
@@ -173,65 +179,65 @@ public class SubjectControllerTest {
     public void getSubjectByNameTest() throws Exception {
         String name = "Calculus";
         Subject subject = subjectTest;
-        Set<Subject> subjects = new HashSet<>();
+        List<Subject> subjects = new ArrayList<>();
         Subject subject2 = new Subject();
         subject2.setId(2L);
         subject2.setName("Calculus 2");
         subjects.add(subject);
         subjects.add(subject2);
 
-        Set<Subject> subjectByName = subjects.stream().filter(s -> s.getName().toLowerCase().contains(name.toLowerCase())).collect(Collectors.toSet());
-        when(subjectService.getSubjectsByName(name)).thenReturn(subjectByName);
+        List<Subject> subjectByName = subjects.stream().filter(s -> s.getName().toLowerCase().contains(name.toLowerCase())).collect(Collectors.toList());
+        Page<Subject> subjectPage = new PageImpl<>(subjectByName);
+        when(subjectService.getSubjectsByName(page,size, name)).thenReturn(subjectPage);
        
         mockMvc.perform(get("/subjects/"+name+"/search/name"))
                 .andExpect(status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$", hasSize(2)))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[0].id").value(1))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[1].id").value(2))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[0].name").value("Calculus"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[1].name").value("Calculus 2"));
+                .andExpect(MockMvcResultMatchers.jsonPath("$.content.[0].id").value(1))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.content.[1].id").value(2))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.content.[0].name").value("Calculus"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.content.[1].name").value("Calculus 2"));
     }
 
     @Test
     public void getSubjectByAreaTest() throws Exception {
         String area = subjectTest.getArea();
         Subject subject = subjectTest;
-        Set<Subject> subjects = new HashSet<>();
+        List<Subject> subjects = new ArrayList<>();
         Subject subject2 = new Subject();
         subject2.setId(2L);
         subject2.setArea("English");
         subjects.add(subject);
         subjects.add(subject2);
 
-        Set<Subject> subjectByArea = subjects.stream().filter(s -> s.getArea().toLowerCase().contains(area.toLowerCase())).collect(Collectors.toSet());
-        when(subjectService.getSubjectsByArea(area)).thenReturn(subjectByArea);
+        List<Subject> subjectByArea = subjects.stream().filter(s -> s.getArea().toLowerCase().contains(area.toLowerCase())).collect(Collectors.toList());
+        Page<Subject> subjectPage = new PageImpl<>(subjectByArea);
+        when(subjectService.getSubjectsByArea(page,size,area)).thenReturn(subjectPage);
        
         mockMvc.perform(get("/subjects/"+area+"/search/area"))
                 .andExpect(status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$", hasSize(1)))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[0].id").value(1))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[0].name").value("Calculus"));
+                .andExpect(MockMvcResultMatchers.jsonPath("$.content.[0].id").value(1))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.content.[0].name").value("Calculus"));
     }
 
     @Test
     public void getSubjectByCreditsTest() throws Exception {
         Integer credits = subjectTest.getCredits();
         Subject subject = subjectTest;
-        Set<Subject> subjects = new HashSet<>();
+        List<Subject> subjects = new ArrayList<>();
         Subject subject2 = new Subject();
         subject2.setId(2L);
         subject2.setCredits(5);
         subjects.add(subject);
         subjects.add(subject2);
 
-        Set<Subject> subjectByCredits = subjects.stream().filter(s -> s.getCredits().equals(credits)).collect(Collectors.toSet());
-        when(subjectService.getSubjectsByCredits(credits)).thenReturn(subjectByCredits);
+        List<Subject> subjectByCredits = subjects.stream().filter(s -> s.getCredits().equals(credits)).collect(Collectors.toList());
+        Page<Subject> subjectPage = new PageImpl<>(subjectByCredits);
+        when(subjectService.getSubjectsByCredits(page,size,credits)).thenReturn(subjectPage);
        
         mockMvc.perform(get("/subjects/"+credits+"/search/credits"))
                 .andExpect(status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$", hasSize(1)))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[0].id").value(1))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[0].credits").value(3));
+                .andExpect(MockMvcResultMatchers.jsonPath("$.content.[0].id").value(1))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.content[0].credits").value(3));
     }
 
     @Test

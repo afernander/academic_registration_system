@@ -1,8 +1,8 @@
 package com.perficient.path.practice.academic_registration_system.services;
 
-import java.util.HashSet;
-import java.util.Set;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.perficient.path.practice.academic_registration_system.errors.DuplicatedDataExeption;
@@ -31,11 +31,13 @@ public class ProfessorServiceImpl implements ProfessorService {
     }
 
     @Override
-    public Set<Professor> getAllProfessors() {
-        Set<Professor> professorsSet = new HashSet<>();
-
-        professorRepository.findAll().iterator().forEachRemaining(professorsSet::add);
-        return professorsSet;
+    public Page<Professor> getAllProfessors(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Professor> professorPage = professorRepository.findAll(pageable);
+        if(professorPage.isEmpty()){
+            throw new ProfessorNotFoundExeption("No professors found");
+        }
+        return professorPage;
     }
 
     @Override
@@ -65,23 +67,23 @@ public class ProfessorServiceImpl implements ProfessorService {
     }
 
     @Override
-    public Set<Professor> getProfessorsByArea(String area) {
-        Set<Professor> professorsSet = new HashSet<>();
-        professorRepository.findByAreaContaining(area).iterator().forEachRemaining(professorsSet::add);
-        if(professorsSet.isEmpty()) {
+    public Page<Professor> getProfessorsByArea(int page, int size,String area) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Professor> professorPage = professorRepository.findByAreaContaining(pageable,area);
+        if(professorPage.isEmpty()) {
             throw new ProfessorNotFoundExeption("No professors found with area : "+area);
         }
-        return professorsSet;
+        return professorPage;
     }
 
     @Override
-    public Set<Professor> getProfessorsBySpecialization(String specialization) {
-        Set<Professor> professorsSet = new HashSet<>();
-        professorRepository.findBySpecializationContaining(specialization).iterator().forEachRemaining(professorsSet::add);
-        if(professorsSet.isEmpty()) {
+    public Page<Professor> getProfessorsBySpecialization(int page, int size,String specialization) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Professor> professorPage = professorRepository.findBySpecializationContaining(pageable,specialization);
+        if(professorPage.isEmpty()) {
             throw new ProfessorNotFoundExeption("No professors found with specialization : "+specialization);
         }
-        return professorsSet;
+        return professorPage;
     }
 
     @Override
