@@ -1,9 +1,10 @@
 package com.perficient.path.practice.academic_registration_system.services;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.perficient.path.practice.academic_registration_system.errors.CourseNotFoundExeption;
@@ -40,11 +41,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Set<User> getAllUsers() {
-        Set<User> usersSet = new HashSet<>();
-
-        userRepository.findAll().iterator().forEachRemaining(usersSet::add);
-        return usersSet;
+    public Page<User> getAllUsers(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<User> userPage = userRepository.findAll(pageable);
+        if(userPage.isEmpty()){
+            throw new UserNotFoundExeption("No users found");
+        }
+        return userPage;
     }
 
     @Override
@@ -85,13 +88,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Set<User> getUsersByFirstName(String name) {
-        Set<User> usersSet = new HashSet<>();
-        userRepository.findByFirstNameContaining(name).iterator().forEachRemaining(usersSet::add);
-        if(usersSet.isEmpty()) {
+    public Page<User> getUsersByFirstName(int page, int size,String name) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<User> userPage = userRepository.findByFirstNameContaining(pageable,name);
+        if(userPage.isEmpty()) {
             throw new UserNotFoundExeption("User with name "+ name+ " not found");
         }
-        return usersSet;
+        return userPage;
     }
 
     @Override

@@ -3,7 +3,6 @@ package com.perficient.path.practice.academic_registration_system.services;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -18,6 +17,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import com.perficient.path.practice.academic_registration_system.repositories.CourseRepository;
 import com.perficient.path.practice.academic_registration_system.repositories.ProfessorRepository;
@@ -48,6 +52,10 @@ public class UserServiceImplTest {
     Course courseTest = new Course();
 
     Professor professorTest = new Professor();
+
+    int page = 0;
+    int size = 3;
+    Pageable pageable = PageRequest.of(page, size);
 
     @BeforeEach
     public void setUp() throws Exception {
@@ -95,13 +103,21 @@ public class UserServiceImplTest {
         user.setId(1L);
         List<User> users = new ArrayList<>();
         users.add(user);
-        
-        when(userRepository.findAll()).thenReturn(users);
+        Page<User> usersPage = new PageImpl<>(users);
+        when(userRepository.findAll(pageable)).thenReturn(usersPage);
 
-        Set<User> allUsers = userService.getAllUsers();
+        Page<User> allUsers = userService.getAllUsers(page, size);
 
-        assertEquals(1, allUsers.size());
-        verify(userRepository, times(1)).findAll();
+        assertNotNull(allUsers, "Users should not be null");
+        verify(userRepository, times(1)).findAll(pageable);
+        verify(userRepository, never()).findById(anyLong());
+    }
+
+    @Test
+    void getAllUsers_NotFoundTest(){
+        when(userRepository.findAll(pageable)).thenReturn(new PageImpl<>(new ArrayList<>()));
+        assertThrows(UserNotFoundExeption.class, () -> userService.getAllUsers(page, size));
+        verify(userRepository, times(1)).findAll(pageable);
         verify(userRepository, never()).findById(anyLong());
     }
 
@@ -311,13 +327,13 @@ public class UserServiceImplTest {
         users.add(user);
 
         List<User> usersByFirstName = users.stream().filter(u -> u.getFirstName().toLowerCase().contains(firstName.toLowerCase())).collect(Collectors.toList());
-        when(userRepository.findByFirstNameContaining(firstName)).thenReturn(usersByFirstName);
+        Page<User> usersPage = new PageImpl<>(usersByFirstName);
+        when(userRepository.findByFirstNameContaining(pageable,firstName)).thenReturn(usersPage);
 
-        Set<User> usersReturned = userService.getUsersByFirstName(firstName);
+        Page<User> usersReturned = userService.getUsersByFirstName(page,size,firstName);
 
         assertNotNull(usersReturned, "Users should not be null");
-        assertEquals(1, usersReturned.size());
-        verify(userRepository, times(1)).findByFirstNameContaining(firstName);
+        verify(userRepository, times(1)).findByFirstNameContaining(pageable,firstName);
         verify(userRepository, never()).findAll();
         verify(courseRepository, never()).findAll();
     }
@@ -325,8 +341,8 @@ public class UserServiceImplTest {
     @Test
     void getUsersByFirstNameNotFoundTest(){
         String userName = "Jonh";
-        when(userRepository.findByFirstNameContaining(userName)).thenReturn(new ArrayList<>());
-        assertThrows(Exception.class, () -> userService.getUsersByFirstName(userName));
+        when(userRepository.findByFirstNameContaining(pageable,userName)).thenReturn(new PageImpl<>(new ArrayList<>()));
+        assertThrows(Exception.class, () -> userService.getUsersByFirstName(page,size,userName));
     }
 
     @Test

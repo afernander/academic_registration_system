@@ -7,7 +7,7 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
+
 import java.util.stream.Collectors;
 
 import static org.mockito.Mockito.*;
@@ -19,6 +19,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import com.perficient.path.practice.academic_registration_system.errors.DuplicatedDataExeption;
 import com.perficient.path.practice.academic_registration_system.errors.ProfessorNotFoundExeption;
@@ -41,6 +46,10 @@ public class ProfessorServiceImplTest{
     Professor professorTest= new Professor();
 
     Subject subjectTest= new Subject();
+
+    int page = 0;
+    int size = 3;
+    Pageable pageable = PageRequest.of(page, size);
 
     @BeforeEach
     void setUp() throws Exception {
@@ -82,12 +91,22 @@ public class ProfessorServiceImplTest{
         List<Professor> professors = new ArrayList<>();
         professors.add(professorTest);
         professors.add(professor);
-        when(professorRepository.findAll()).thenReturn(professors);
+        Page<Professor> professorPage = new PageImpl<>(professors);
+        when(professorRepository.findAll(pageable)).thenReturn(professorPage);
 
-        Set<Professor> professorsReturned = professorService.getAllProfessors();
+        Page<Professor> professorsReturned = professorService.getAllProfessors(page,size);
 
-        assertEquals(2, professorsReturned.size(), "The size of the set is 2");
-        verify(professorRepository, times(1)).findAll();
+        assertNotNull(professorsReturned, "The professors are not null");
+        verify(professorRepository, times(1)).findAll(pageable);
+        verify(professorRepository, never()).findById(anyLong());
+    }
+
+    @Test
+    void getAllProfessors_NotFoundTest(){
+     
+        when(professorRepository.findAll(pageable)).thenReturn(new PageImpl<>(new ArrayList<>()));
+        assertThrows(Exception.class, () -> professorService.getAllProfessors(page,size));
+        verify(professorRepository, times(1)).findAll(pageable);
         verify(professorRepository, never()).findById(anyLong());
     }
 
@@ -160,12 +179,13 @@ public class ProfessorServiceImplTest{
         professors.add(professor);
 
         List<Professor> professorsByArea= professors.stream().filter(p -> p.getArea().toLowerCase().contains(area.toLowerCase())).collect(Collectors.toList());
-        when(professorRepository.findByAreaContaining(area)).thenReturn(professorsByArea);
+        Page<Professor> professorPage = new PageImpl<>(professorsByArea);
+        when(professorRepository.findByAreaContaining(pageable,area)).thenReturn(professorPage);
 
-        Set<Professor> professorsReturned = professorService.getProfessorsByArea(area);
+        Page<Professor> professorsReturned = professorService.getProfessorsByArea(page,size,area);
 
-        assertEquals(2, professorsReturned.size(), "The size of the set is 2");
-        verify(professorRepository, times(1)).findByAreaContaining(area);
+        assertNotNull(professorsReturned, "The professors are not null");
+        verify(professorRepository, times(1)).findByAreaContaining(pageable,area);
         verify(professorRepository, never()).findById(anyLong());
         verify(professorRepository, never()).findAll();
     }
@@ -173,8 +193,8 @@ public class ProfessorServiceImplTest{
     @Test
     void getProfessorsByAreaNotFoundException(){
         String area = "Science";
-        when(professorRepository.findByAreaContaining(area)).thenReturn(new ArrayList<>());
-        assertThrows(Exception.class, () -> professorService.getProfessorsByArea(area));
+        when(professorRepository.findByAreaContaining(pageable,area)).thenReturn(new PageImpl<>(new ArrayList<>()));
+        assertThrows(Exception.class, () -> professorService.getProfessorsByArea(page,size,area));
     }
 
     @Test
@@ -190,12 +210,13 @@ public class ProfessorServiceImplTest{
         professors.add(professor);
 
         List<Professor> professorsBySpecialization= professors.stream().filter(p -> p.getSpecialization().toLowerCase().contains(specialization.toLowerCase())).collect(Collectors.toList());
-        when(professorRepository.findBySpecializationContaining(specialization)).thenReturn(professorsBySpecialization);
+        Page<Professor> professorPage = new PageImpl<>(professorsBySpecialization);
+        when(professorRepository.findBySpecializationContaining(pageable,specialization)).thenReturn(professorPage);
 
-        Set<Professor> professorsReturned = professorService.getProfessorsBySpecialization(specialization);
+        Page<Professor> professorsReturned = professorService.getProfessorsBySpecialization(page,size,specialization);
 
-        assertEquals(1, professorsReturned.size(), "The size of the set is 1");
-        verify(professorRepository, times(1)).findBySpecializationContaining(specialization);
+        assertNotNull(professorsReturned, "The professors are not null");
+        verify(professorRepository, times(1)).findBySpecializationContaining(pageable,specialization);
         verify(professorRepository, never()).findById(anyLong());
         verify(professorRepository, never()).findAll();
     }
@@ -203,8 +224,8 @@ public class ProfessorServiceImplTest{
     @Test
     void getProfessorsBySpecializationNotFoundException(){
         String specialization = "Software";
-        when(professorRepository.findBySpecializationContaining(specialization)).thenReturn(new ArrayList<>());
-        assertThrows(Exception.class, () -> professorService.getProfessorsBySpecialization(specialization));
+        when(professorRepository.findBySpecializationContaining(pageable,specialization)).thenReturn(new PageImpl<>(new ArrayList<>()));
+        assertThrows(Exception.class, () -> professorService.getProfessorsBySpecialization(page,size,specialization));
     }
 
     @Test

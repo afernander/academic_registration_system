@@ -1,9 +1,8 @@
 package com.perficient.path.practice.academic_registration_system.controllers;
 
-import java.util.Set;
-
 import javax.validation.Valid;
 
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -12,6 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.perficient.path.practice.academic_registration_system.models.Professor;
@@ -34,8 +34,9 @@ public class ProfessorController {
     }
 
     @GetMapping(value = "/all")
-    public ResponseEntity<Set<Professor>> getAllProfessors() {
-        Set<Professor> professorsSet = professorService.getAllProfessors();
+    public ResponseEntity<Page<Professor>> getAllProfessors(@RequestParam(defaultValue = "0") int page,
+                                                            @RequestParam(defaultValue = "3") int size) {
+        Page<Professor> professorsSet = professorService.getAllProfessors(page,size);
         return new ResponseEntity<>(professorsSet, HttpStatus.OK);
     }
 
@@ -58,14 +59,18 @@ public class ProfessorController {
     }
 
     @GetMapping(value = "/{area}/search/area")
-    public ResponseEntity<Set<Professor>> getAllProfessorsByArea(@PathVariable String area) {
-        Set<Professor> professorsSet = professorService.getProfessorsByArea(area);
+    public ResponseEntity<Page<Professor>> getAllProfessorsByArea(@RequestParam(defaultValue = "0") int page,
+                                                                 @RequestParam(defaultValue = "3") int size,
+                                                                 @PathVariable String area) {
+        Page<Professor> professorsSet = professorService.getProfessorsByArea(page,size,area);
         return new ResponseEntity<>(professorsSet, HttpStatus.OK);
     }
 
     @GetMapping(value = "/{specialization}/search/specialization")
-    public ResponseEntity<Set<Professor>> getAllProfessorsBySpecialization(@PathVariable String specialization) {
-        Set<Professor> professorsSet = professorService.getProfessorsBySpecialization(specialization);
+    public ResponseEntity<Page<Professor>> getAllProfessorsBySpecialization(@RequestParam(defaultValue = "0") int page,
+                                                                            @RequestParam(defaultValue = "3") int size,
+                                                                            @PathVariable String specialization) {
+        Page<Professor> professorsSet = professorService.getProfessorsBySpecialization(page,size,specialization);
         return new ResponseEntity<>(professorsSet, HttpStatus.OK);
     }
 

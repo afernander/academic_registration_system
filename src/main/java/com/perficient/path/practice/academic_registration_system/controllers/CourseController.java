@@ -1,10 +1,10 @@
 package com.perficient.path.practice.academic_registration_system.controllers;
 
 import java.util.List;
-import java.util.Set;
 
 import javax.validation.Valid;
 
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.perficient.path.practice.academic_registration_system.models.Course;
@@ -40,8 +41,9 @@ public class CourseController {
     }
 
     @GetMapping(value="/all")
-    public ResponseEntity<Set<Course>> getAllCourses() {
-        Set<Course> courses = courseService.getAllCourses();
+    public ResponseEntity<Page<Course>> getAllCourses(@RequestParam(defaultValue = "0") int page,
+                                                     @RequestParam(defaultValue = "3") int size) {
+        Page<Course> courses = courseService.getAllCourses(page,size);
         return new ResponseEntity<>(courses, HttpStatus.OK);
     }
 
@@ -64,8 +66,10 @@ public class CourseController {
     }
 
     @GetMapping(value="/{name}/search/name")
-    public ResponseEntity<Set<Course>> getCoursesByName(@PathVariable String name) {
-        Set<Course> courses = courseService.getCoursesByName(name);
+    public ResponseEntity<Page<Course>> getCoursesByName(@RequestParam(defaultValue = "0") int page,
+                                                        @RequestParam(defaultValue = "3") int size,
+                                                        @PathVariable String name) {
+        Page<Course> courses = courseService.getCoursesByName(page,size,name);
         return new ResponseEntity<>(courses, HttpStatus.OK);
     }
 

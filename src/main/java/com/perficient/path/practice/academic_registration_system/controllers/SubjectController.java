@@ -1,10 +1,11 @@
 package com.perficient.path.practice.academic_registration_system.controllers;
 
 import java.util.List;
-import java.util.Set;
+
 
 import javax.validation.Valid;
 
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.perficient.path.practice.academic_registration_system.models.Subject;
@@ -35,8 +37,9 @@ public class SubjectController {
     }
 
     @GetMapping(value = "/all")
-    public ResponseEntity<Set<Subject>> getAllSubjects() {
-        Set<Subject> subjectsSet = subjectService.getAllSubjects();
+    public ResponseEntity<Page<Subject>> getAllSubjects(@RequestParam(defaultValue = "0") int page,
+                                                       @RequestParam(defaultValue = "3") int size) {
+        Page<Subject> subjectsSet = subjectService.getAllSubjects(page,size);
         return new ResponseEntity<>(subjectsSet, HttpStatus.OK);
     }
 
@@ -59,20 +62,26 @@ public class SubjectController {
     }
 
     @GetMapping(value = "/{name}/search/name")
-    public ResponseEntity<Set<Subject>> getSubjectsByName(@PathVariable String name) {
-        Set<Subject> subjects = subjectService.getSubjectsByName(name);
+    public ResponseEntity<Page<Subject>> getSubjectsByName(@RequestParam(defaultValue = "0") int page,
+                                                         @RequestParam(defaultValue = "3") int size,
+                                                         @PathVariable String name) {
+        Page<Subject> subjects = subjectService.getSubjectsByName(page,size,name);
         return new ResponseEntity<>(subjects, HttpStatus.OK);
     }
 
     @GetMapping(value = "/{area}/search/area")
-    public ResponseEntity<Set<Subject>> getSubjectsByArea(@PathVariable String area) {
-        Set<Subject> subjects = subjectService.getSubjectsByArea(area);
+    public ResponseEntity<Page<Subject>> getSubjectsByArea(@RequestParam(defaultValue = "0") int page,
+                                                          @RequestParam(defaultValue = "3") int size,
+                                                          @PathVariable String area) {
+        Page<Subject> subjects = subjectService.getSubjectsByArea(page,size,area);
         return new ResponseEntity<>(subjects, HttpStatus.OK);
     }
 
     @GetMapping(value = "/{credits}/search/credits")
-    public ResponseEntity<Set<Subject>> getSubjectsByCredits(@PathVariable Integer credits) {
-        Set<Subject> subjects = subjectService.getSubjectsByCredits(credits);
+    public ResponseEntity<Page<Subject>> getSubjectsByCredits(@RequestParam(defaultValue = "0") int page,
+                                                             @RequestParam(defaultValue = "3") int size,
+                                                             @PathVariable Integer credits) {
+        Page<Subject> subjects = subjectService.getSubjectsByCredits(page,size,credits);
         return new ResponseEntity<>(subjects, HttpStatus.OK);
     }
 

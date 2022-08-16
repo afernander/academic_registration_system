@@ -1,8 +1,8 @@
 package com.perficient.path.practice.academic_registration_system.controllers;
 
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.mockito.Mockito.when;
@@ -10,9 +10,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.hamcrest.Matchers.hasSize;
 
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -48,6 +50,10 @@ public class ProfessorControllerTest {
 
     Subject subjectTest= new Subject();
 
+    int page = 0;
+    int size = 3;
+    Pageable pageable = PageRequest.of(page, size);
+
     @BeforeEach
     void setUp() throws Exception {
         MockitoAnnotations.openMocks(this);
@@ -78,7 +84,7 @@ public class ProfessorControllerTest {
 
     @Test
     void getAllProfessorsTest() throws Exception {
-        Set<Professor> professors = new HashSet<>();
+        List<Professor> professors = new ArrayList<>();
         professors.add(professorTest);
         Professor professor = new Professor();
         professor.setId(2L);
@@ -86,18 +92,18 @@ public class ProfessorControllerTest {
         professor.setSpecialization("Flute");
         professors.add(professor);
 
-        when(professorService.getAllProfessors()).thenReturn(professors);
+        Page<Professor> professorPage = new PageImpl<>(professors);
+        when(professorService.getAllProfessors(page, size)).thenReturn(professorPage);
+       
         
         mockMvc.perform(get("/professors/all"))
                 .andExpect(status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$").isArray())
-                .andExpect(MockMvcResultMatchers.jsonPath("$").value(hasSize(2)))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[1].id").value(1))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[1].area").value("Computer Science"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[1].specialization").value("Software Engineering"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[0].id").value(2))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[0].area").value("Music"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[0].specialization").value("Flute"));
+                .andExpect(MockMvcResultMatchers.jsonPath("$.content.[0].id").value(1))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.content.[0].area").value("Computer Science"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.content.[0].specialization").value("Software Engineering"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.content.[1].id").value(2))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.content.[1].area").value("Music"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.content.[1].specialization").value("Flute"));
     }
 
     @Test
@@ -155,45 +161,44 @@ public class ProfessorControllerTest {
     @Test
     void getProfessorsByArea() throws Exception{
         String area = "Science";
-        Set<Professor> professors = new HashSet<>();
+        List<Professor> professors = new ArrayList<>();
         professors.add(professorTest);
         Professor professor = new Professor();
         professor.setId(2L);
         professor.setArea("Music");
         professors.add(professor);
 
-        Set<Professor> professorsByArea = professors.stream().filter(p -> p.getArea().toLowerCase().contains(area.toLowerCase())).collect(Collectors.toSet());
-        when(professorService.getProfessorsByArea(area)).thenReturn(professorsByArea);
+        List<Professor> professorsByArea = professors.stream().filter(p -> p.getArea().toLowerCase().contains(area.toLowerCase())).collect(Collectors.toList());
+        Page<Professor> professorPage = new PageImpl<>(professorsByArea);
+        when(professorService.getProfessorsByArea(page, size,area)).thenReturn(professorPage);
        
         mockMvc.perform(get("/professors/"+area+"/search/area"))
                 .andExpect(status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$").isArray())
-                .andExpect(MockMvcResultMatchers.jsonPath("$").value(hasSize(1)))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[0].id").value(1))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[0].area").value("Computer Science"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[0].specialization").value("Software Engineering"));
+                .andExpect(MockMvcResultMatchers.jsonPath("$.content.[0].id").value(1))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.content.[0].area").value("Computer Science"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.content.[0].specialization").value("Software Engineering"));
     }
 
     @Test
     void getProfessorsBySpecialization() throws Exception{
         String specialization = "Software";
-        Set<Professor> professors = new HashSet<>();
+        List<Professor> professors = new ArrayList<>();
         professors.add(professorTest);
         Professor professor = new Professor();
         professor.setId(2L);
         professor.setSpecialization("Fluid");
         professors.add(professor);
 
-        Set<Professor> professorsBySpecialization = professors.stream().filter(p -> p.getSpecialization().toLowerCase().contains(specialization.toLowerCase())).collect(Collectors.toSet());
-        when(professorService.getProfessorsBySpecialization(specialization)).thenReturn(professorsBySpecialization);
+        List<Professor> professorsBySpecialization = professors.stream().filter(p -> p.getSpecialization().toLowerCase().contains(specialization.toLowerCase())).collect(Collectors.toList());
+        Page<Professor> professorPage = new PageImpl<>(professorsBySpecialization);
+        when(professorService.getProfessorsBySpecialization(page, size,specialization)).thenReturn(professorPage);
+
        
         mockMvc.perform(get("/professors/"+specialization+"/search/specialization"))
                 .andExpect(status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$").isArray())
-                .andExpect(MockMvcResultMatchers.jsonPath("$").value(hasSize(1)))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[0].id").value(1))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[0].area").value("Computer Science"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[0].specialization").value("Software Engineering"));
+                .andExpect(MockMvcResultMatchers.jsonPath("$.content.[0].id").value(1))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.content.[0].area").value("Computer Science"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.content.[0].specialization").value("Software Engineering"));
     }
 
     @Test
