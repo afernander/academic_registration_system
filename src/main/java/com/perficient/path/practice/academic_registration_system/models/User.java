@@ -23,6 +23,7 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -56,9 +57,10 @@ public class User {
     private String password;
 
     @Temporal(TemporalType.DATE)
-    private Date bornDate;
+    @JsonFormat(pattern="yyyy-MM-dd")
+    @Column(name = "born_date")
+    private Date bornDate=new Date();
 
-    @NotNull(message = "Role is required")
     private String role;
 
     @ManyToMany(fetch = FetchType.LAZY,

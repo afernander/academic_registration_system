@@ -10,7 +10,6 @@ public interface UserService {
 
     User getUserById(Long id);
     Page<User> getAllUsers(int page, int size);
-    User createUser(User user);
     User updateUser(Long id, User user);
     void deleteUserById(Long id);
     User addCourseToUser(Long userId, Long courseId);
