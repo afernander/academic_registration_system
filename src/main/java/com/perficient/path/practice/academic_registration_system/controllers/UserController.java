@@ -9,8 +9,6 @@ import com.perficient.path.practice.academic_registration_system.services.UserSe
 
 import java.util.List;
 
-import javax.validation.Valid;
-
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -45,14 +43,9 @@ public class UserController {
         return new ResponseEntity<>(usersPage, HttpStatus.OK);
     }
 
-    @PostMapping(value="/create")
-    public ResponseEntity<User> createUser(@Valid @RequestBody User user) {
-        User newUser = userService.createUser(user);
-        return new ResponseEntity<>(newUser, HttpStatus.CREATED);
-    }
 
     @PostMapping(value="/{id}/update")
-    public ResponseEntity<User> updateUser(@PathVariable Long id, @Valid @RequestBody User user) {
+    public ResponseEntity<User> updateUser(@PathVariable Long id,@RequestBody User user) {
         User updatedUser = userService.updateUser(id, user);
         return new ResponseEntity<>(updatedUser, HttpStatus.OK);
     }

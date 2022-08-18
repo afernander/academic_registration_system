@@ -5,10 +5,10 @@ import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.perficient.path.practice.academic_registration_system.errors.CourseNotFoundExeption;
-import com.perficient.path.practice.academic_registration_system.errors.DuplicatedDataExeption;
 import com.perficient.path.practice.academic_registration_system.errors.ProfessorNotFoundExeption;
 import com.perficient.path.practice.academic_registration_system.errors.UserNotFoundExeption;
 import com.perficient.path.practice.academic_registration_system.models.Course;
@@ -50,26 +50,28 @@ public class UserServiceImpl implements UserService {
         return userPage;
     }
 
-    @Override
-    public User createUser(User user) {
-        try{
-            userRepository.save(user);
-        }catch(Exception e){
-            throw new DuplicatedDataExeption("User with name "+ user.getFirstName()+ " already exists");
-        }
-        return user;
-    }
 
     @Override
     public User updateUser(Long id,User user) {
         User userToUpdate = userRepository.findById(id).orElseThrow(() -> new UserNotFoundExeption("User with id "+ id+ " not found to update"));
-        userToUpdate.setFirstName(user.getFirstName());
-        userToUpdate.setMiddleName(user.getMiddleName());
-        userToUpdate.setFirstSurname(user.getFirstSurname());
-        userToUpdate.setSecondSurname(user.getSecondSurname());
-        userToUpdate.setPassword(user.getPassword());
-        userToUpdate.setBornDate(user.getBornDate());
-        userToUpdate.setRole(user.getRole());
+        if(user.getFirstName() != null){
+            userToUpdate.setFirstName(user.getFirstName());
+        }
+        if(user.getMiddleName() != null){
+            userToUpdate.setMiddleName(user.getMiddleName());
+        }
+        if(user.getFirstSurname() != null){
+            userToUpdate.setFirstSurname(user.getFirstSurname());
+        }
+        if(user.getSecondSurname() != null){
+            userToUpdate.setSecondSurname(user.getSecondSurname());
+        }
+        if(user.getPassword() != null){
+            userToUpdate.setPassword(new BCryptPasswordEncoder().encode(user.getPassword()));
+        }
+        if(user.getBornDate() != null){
+            userToUpdate.setBornDate(user.getBornDate());
+        }
         return userRepository.save(userToUpdate);
     }
 

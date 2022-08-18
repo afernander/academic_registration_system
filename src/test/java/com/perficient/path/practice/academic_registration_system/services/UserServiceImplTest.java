@@ -27,7 +27,6 @@ import com.perficient.path.practice.academic_registration_system.repositories.Co
 import com.perficient.path.practice.academic_registration_system.repositories.ProfessorRepository;
 import com.perficient.path.practice.academic_registration_system.repositories.UserRepository;
 import com.perficient.path.practice.academic_registration_system.errors.CourseNotFoundExeption;
-import com.perficient.path.practice.academic_registration_system.errors.DuplicatedDataExeption;
 import com.perficient.path.practice.academic_registration_system.errors.ProfessorNotFoundExeption;
 import com.perficient.path.practice.academic_registration_system.errors.UserNotFoundExeption;
 import com.perficient.path.practice.academic_registration_system.models.Course;
@@ -122,32 +121,13 @@ public class UserServiceImplTest {
     }
 
     @Test
-    void createUserTest(){
-        User user = userTest;
-    
-        when(userRepository.save(user)).thenReturn(user);
-
-        User createdUser = userService.createUser(user);
-
-        assertNotNull(createdUser,"User should not be null");
-        assertEquals(user, createdUser);
-        verify(userRepository, times(1)).save(user);
-    }
-
-    @Test
-    void createUser_DuplicatedDataExeptionTest()throws DuplicatedDataExeption{
-        User user = userTest;
-        when(userRepository.save(user)).thenThrow(DuplicatedDataExeption.class);
-        assertThrows(DuplicatedDataExeption.class, () -> userService.createUser(user));
-    }
-
-    @Test
     void updateUserTest(){
         User user = userTest;
         User updatedUser = userTest;
         updatedUser.setFirstName("Updated");
         updatedUser.setMiddleName("Updated");
         updatedUser.setFirstSurname("Updated");
+        updatedUser.setSecondSurname("Updated");
         updatedUser.setEmail("Updated@gmail.com");
         updatedUser.setPassword("Updated123");
         updatedUser.setRole("Updated");
