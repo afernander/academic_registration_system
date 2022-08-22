@@ -1,5 +1,6 @@
 package com.perficient.path.practice.academic_registration_system.controllers;
 
+import com.perficient.path.practice.academic_registration_system.errors.DuplicatedDataExeption;
 import com.perficient.path.practice.academic_registration_system.models.User;
 import com.perficient.path.practice.academic_registration_system.repositories.UserRepository;
 import com.perficient.path.practice.academic_registration_system.services.JwtUserDetailsService;
@@ -93,7 +94,11 @@ public class AuthenticationController {
         newUser.setRole("USER"); 
         UserDetails userDetails = userDetailsService.createUserDetails(newUser.getEmail(), newUser.getPassword());
         String token = jwtTokenUtil.generateToken(userDetails);
-        userRepository.save(newUser);
+        try{
+            userRepository.save(newUser);
+        }catch(Exception e){
+            throw new DuplicatedDataExeption("User with name "+ user.getFirstName()+ " already exists");
+        }
         responseMap.put("error", false);
         responseMap.put("username", newUser.getEmail());
         responseMap.put("message", "Account created successfully");

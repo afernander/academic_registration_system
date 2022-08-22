@@ -170,4 +170,46 @@ public class ExeptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<Object>(apiError, new HttpHeaders(), apiError.getStatus());
     }
 
+    //Custom Exception
+
+    @ExceptionHandler({ CourseNotFoundExeption.class })
+    public ResponseEntity<Object> handleCourseNotFound(final Exception ex, final WebRequest request) {
+        logger.info(ex.getClass().getName());
+        logger.error("error", ex);
+        final ApiError apiError = new ApiError(HttpStatus.NOT_FOUND, ex.getLocalizedMessage(), "Course not found");
+        return new ResponseEntity<Object>(apiError, new HttpHeaders(), apiError.getStatus());
+    }
+
+    @ExceptionHandler({ DuplicatedDataExeption.class })
+    public ResponseEntity<Object> handleDuplicatedData(final Exception ex, final WebRequest request) {
+        logger.info(ex.getClass().getName());
+        logger.error("error", ex);
+        final ApiError apiError = new ApiError(HttpStatus.CONFLICT, ex.getLocalizedMessage(), "Duplicated data(Record already exist)");
+        return new ResponseEntity<Object>(apiError, new HttpHeaders(), apiError.getStatus());
+    }
+
+    @ExceptionHandler({ ProfessorNotFoundExeption.class })
+    public ResponseEntity<Object> handleProfessorNotFound(final Exception ex, final WebRequest request) {
+        logger.info(ex.getClass().getName());
+        logger.error("error", ex);
+        final ApiError apiError = new ApiError(HttpStatus.NOT_FOUND, ex.getLocalizedMessage(), "Professor not found");
+        return new ResponseEntity<Object>(apiError, new HttpHeaders(), apiError.getStatus());
+    }
+     
+    @ExceptionHandler({ SubjectNotFoundExeption.class })
+    public ResponseEntity<Object> handleSubjectNotFound(final Exception ex, final WebRequest request) {
+        logger.info(ex.getClass().getName());
+        logger.error("error", ex);
+        final ApiError apiError = new ApiError(HttpStatus.NOT_FOUND, ex.getLocalizedMessage(), "Subject not found");
+        return new ResponseEntity<Object>(apiError, new HttpHeaders(), apiError.getStatus());
+    }
+
+    @ExceptionHandler({ UserNotFoundExeption.class })
+    public ResponseEntity<Object> handleUserNotFound(final Exception ex, final WebRequest request) {
+        logger.info(ex.getClass().getName());
+        logger.error("error", ex);
+        final ApiError apiError = new ApiError(HttpStatus.NOT_FOUND, ex.getLocalizedMessage(), "User not found");
+        return new ResponseEntity<Object>(apiError, new HttpHeaders(), apiError.getStatus());
+    }
+
 }
