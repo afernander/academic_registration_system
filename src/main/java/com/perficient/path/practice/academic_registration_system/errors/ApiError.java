@@ -42,5 +42,4 @@ public class ApiError {
         errors = Arrays.asList(error);
     }
 
-
 }
