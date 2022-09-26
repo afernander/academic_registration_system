@@ -45,7 +45,7 @@ public class ExeptionHandler extends ResponseEntityExceptionHandler {
         for (final ObjectError error : ex.getBindingResult().getGlobalErrors()) {
             errors.add(error.getObjectName() + ": " + error.getDefaultMessage());
         }
-        final ApiError apiError = new ApiError(HttpStatus.BAD_REQUEST, ex.getLocalizedMessage(), errors);
+        final ApiError apiError = new ApiError(HttpStatus.BAD_REQUEST, "MethodArgumentNotValidException", errors);
         return handleExceptionInternal(ex, apiError, headers, apiError.getStatus(), request);
     }
 
